@@ -29,82 +29,90 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-            this._createNegativeToolstripButton = new System.Windows.Forms.ToolStripButton();
-            this._imageTabs = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.toolStrip1.SuspendLayout();
-            this._imageTabs.SuspendLayout();
-            this.SuspendLayout();
+            toolStrip1 = new ToolStrip();
+            toolStripButton1 = new ToolStripButton();
+            _createNegativeToolstripButton = new ToolStripButton();
+            _imageTabs = new TabControl();
+            tabPage1 = new TabPage();
+            _resizeImageToolstripButton = new ToolStripButton();
+            toolStrip1.SuspendLayout();
+            _imageTabs.SuspendLayout();
+            SuspendLayout();
             // 
             // toolStrip1
             // 
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton1,
-            this._createNegativeToolstripButton});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1057, 25);
-            this.toolStrip1.TabIndex = 0;
-            this.toolStrip1.Text = "toolStrip1";
+            toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripButton1, _createNegativeToolstripButton, _resizeImageToolstripButton });
+            toolStrip1.Location = new Point(0, 0);
+            toolStrip1.Name = "toolStrip1";
+            toolStrip1.Size = new Size(1057, 25);
+            toolStrip1.TabIndex = 0;
+            toolStrip1.Text = "toolStrip1";
             // 
             // toolStripButton1
             // 
-            this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
-            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton1.Text = "Settings";
-            this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
+            toolStripButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripButton1.Image = (Image)resources.GetObject("toolStripButton1.Image");
+            toolStripButton1.ImageTransparentColor = Color.Magenta;
+            toolStripButton1.Name = "toolStripButton1";
+            toolStripButton1.Size = new Size(23, 22);
+            toolStripButton1.Text = "Settings";
+            toolStripButton1.Click += toolStripButton1_Click;
             // 
             // _createNegativeToolstripButton
             // 
-            this._createNegativeToolstripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this._createNegativeToolstripButton.Image = ((System.Drawing.Image)(resources.GetObject("_createNegativeToolstripButton.Image")));
-            this._createNegativeToolstripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this._createNegativeToolstripButton.Name = "_createNegativeToolstripButton";
-            this._createNegativeToolstripButton.Size = new System.Drawing.Size(23, 22);
-            this._createNegativeToolstripButton.Text = "Create Negative";
-            this._createNegativeToolstripButton.Click += new System.EventHandler(this._createNegativeToolstripButton_Click);
+            _createNegativeToolstripButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            _createNegativeToolstripButton.Image = (Image)resources.GetObject("_createNegativeToolstripButton.Image");
+            _createNegativeToolstripButton.ImageTransparentColor = Color.Magenta;
+            _createNegativeToolstripButton.Name = "_createNegativeToolstripButton";
+            _createNegativeToolstripButton.Size = new Size(23, 22);
+            _createNegativeToolstripButton.Text = "Create Negative";
+            _createNegativeToolstripButton.Click += _createNegativeToolstripButton_Click;
             // 
             // _imageTabs
             // 
-            this._imageTabs.Controls.Add(this.tabPage1);
-            this._imageTabs.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._imageTabs.Location = new System.Drawing.Point(0, 25);
-            this._imageTabs.Name = "_imageTabs";
-            this._imageTabs.SelectedIndex = 0;
-            this._imageTabs.Size = new System.Drawing.Size(1057, 651);
-            this._imageTabs.TabIndex = 1;
+            _imageTabs.Controls.Add(tabPage1);
+            _imageTabs.Dock = DockStyle.Fill;
+            _imageTabs.Location = new Point(0, 25);
+            _imageTabs.Name = "_imageTabs";
+            _imageTabs.SelectedIndex = 0;
+            _imageTabs.Size = new Size(1057, 651);
+            _imageTabs.TabIndex = 1;
             // 
             // tabPage1
             // 
-            this.tabPage1.Location = new System.Drawing.Point(4, 24);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1049, 623);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "tabPage1";
-            this.tabPage1.UseVisualStyleBackColor = true;
+            tabPage1.Location = new Point(4, 24);
+            tabPage1.Name = "tabPage1";
+            tabPage1.Padding = new Padding(3);
+            tabPage1.Size = new Size(1049, 623);
+            tabPage1.TabIndex = 0;
+            tabPage1.Text = "tabPage1";
+            tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // _resizeImageToolstripButton
+            // 
+            _resizeImageToolstripButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            _resizeImageToolstripButton.Image = (Image)resources.GetObject("_resizeImageToolstripButton.Image");
+            _resizeImageToolstripButton.ImageTransparentColor = Color.Magenta;
+            _resizeImageToolstripButton.Name = "_resizeImageToolstripButton";
+            _resizeImageToolstripButton.Size = new Size(23, 22);
+            _resizeImageToolstripButton.Text = "toolStripButton2";
+            _resizeImageToolstripButton.Click += _resizeImageToolstripButton_Click;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1057, 676);
-            this.Controls.Add(this._imageTabs);
-            this.Controls.Add(this.toolStrip1);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "MainForm";
-            this.Text = "Digital Negative Creator";
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
-            this._imageTabs.ResumeLayout(false);
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1057, 676);
+            Controls.Add(_imageTabs);
+            Controls.Add(toolStrip1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Name = "MainForm";
+            Text = "Digital Negative Creator";
+            toolStrip1.ResumeLayout(false);
+            toolStrip1.PerformLayout();
+            _imageTabs.ResumeLayout(false);
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -114,5 +122,6 @@
         private ToolStripButton _createNegativeToolstripButton;
         private TabControl _imageTabs;
         private TabPage tabPage1;
+        private ToolStripButton _resizeImageToolstripButton;
     }
 }
