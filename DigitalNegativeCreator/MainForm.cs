@@ -1,3 +1,4 @@
+using DigitalNegativeCreator.Components;
 using DigitalNegativeCreator.Entities;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -29,52 +30,58 @@ namespace DigitalNegativeCreator
 
         private void _createNegativeToolstripButton_Click(object sender, EventArgs e)
         {
-            var ofd = new OpenFileDialog();
-            ofd.Title = "Open Main Image To Convert";
-            if (DialogResult.OK != ofd.ShowDialog())
-            {
-                return;
-            }
-            var imageFileName = ofd.FileName;
-
-            var originalImageBitmap = (Bitmap)Bitmap.FromFile(imageFileName, true);
-            AddImageToTabControl(originalImageBitmap, imageFileName, imageFileName);
-
-            if (SettingsEntity.SortedGrayscaleColorMapping == null || SettingsEntity.SortedGrayscaleColorMapping.Count == 0)
-            {
-                LoadGrayscaleMappingFile();
-            }
-
-            if (null == SettingsEntity?.SortedGrayscaleColorMapping) return; // todo: show message?
-
-            Cursor = Cursors.WaitCursor;
-            try
-            {
-                DateTime now = DateTime.Now;
-                var negativeFileName = $"{Path.GetFileNameWithoutExtension(imageFileName)}_negative_{now.Year}_{now.Month}_{now.Day}_{now.Hour}_{now.Minute}_{now.Second}.tiff";
-                var bmp = CreateNegative(originalImageBitmap, imageFileName, negativeFileName);
-                if (null == bmp) return;
-                var negativePictureBox = AddImageToTabControl(bmp, negativeFileName, negativeFileName);
-                ImageNegativePairs.Add(imageFileName, negativeFileName);
-            }
-            finally
-            {
-                Cursor = Cursors.Default;
-            }
-        }
-
-        private PictureBox AddImageToTabControl(Bitmap bmp, string fileName, string tag)
-        {
-            var tabPage = new TabPage($"Original Image: {Path.GetFileNameWithoutExtension(fileName)}");
-            tabPage.Tag = tag;
-            var pictureBox = new PictureBox();
-            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox.Dock = DockStyle.Fill;
-            pictureBox.Image = bmp;
-            tabPage.Controls.Add(pictureBox);
+            var imageAndNegativeControl = new ImageAndNegativeControl();
+            imageAndNegativeControl.Dock= DockStyle.Fill;
+            var tabPage = new TabPage();
+            tabPage.Controls.Add(imageAndNegativeControl);
             _imageTabs.TabPages.Add(tabPage);
-            return pictureBox;
+            imageAndNegativeControl.LoadImage();
+            //var ofd = new OpenFileDialog();
+            //ofd.Title = "Open Main Image To Convert";
+            //if (DialogResult.OK != ofd.ShowDialog())
+            //{
+            //    return;
+            //}
+            //var imageFileName = ofd.FileName;
+
+            //var originalImageBitmap = (Bitmap)Bitmap.FromFile(imageFileName, true);
+            //AddImageToTabControl(originalImageBitmap, imageFileName, imageFileName);
+
+            //if (SettingsEntity.SortedGrayscaleColorMapping == null || SettingsEntity.SortedGrayscaleColorMapping.Count == 0)
+            //{
+            //    LoadGrayscaleMappingFile();
+            //}
+
+            //if (null == SettingsEntity?.SortedGrayscaleColorMapping) return; // todo: show message?
+
+            //Cursor = Cursors.WaitCursor;
+            //try
+            //{
+            //    DateTime now = DateTime.Now;
+            //    var negativeFileName = $"{Path.GetFileNameWithoutExtension(imageFileName)}_negative_{now.Year}_{now.Month}_{now.Day}_{now.Hour}_{now.Minute}_{now.Second}.tiff";
+            //    var bmp = CreateNegative(originalImageBitmap, imageFileName, negativeFileName);
+            //    if (null == bmp) return;
+            //    var negativePictureBox = AddImageToTabControl(bmp, negativeFileName, negativeFileName);
+            //    ImageNegativePairs.Add(imageFileName, negativeFileName);
+            //}
+            //finally
+            //{
+            //    Cursor = Cursors.Default;
+            //}
         }
+
+        //private PictureBox AddImageToTabControl(Bitmap bmp, string fileName, string tag)
+        //{
+        //    var tabPage = new TabPage($"Original Image: {Path.GetFileNameWithoutExtension(fileName)}");
+        //    tabPage.Tag = tag;
+        //    var pictureBox = new PictureBox();
+        //    pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+        //    pictureBox.Dock = DockStyle.Fill;
+        //    pictureBox.Image = bmp;
+        //    tabPage.Controls.Add(pictureBox);
+        //    _imageTabs.TabPages.Add(tabPage);
+        //    return pictureBox;
+        //}
 
         private void LoadGrayscaleMappingFile()
         {
