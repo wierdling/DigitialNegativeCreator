@@ -12,6 +12,10 @@ namespace DigitalNegativeCreator.Components
 {
     public partial class ImageAndNegativeControl : UserControl
     {
+        private string Filename { get; set; }
+        private Bitmap ImageFile { get; set; }
+        private Bitmap NegativeFile { get; set; }
+
         //  possible widthHeight types:
         /*
          px
@@ -33,15 +37,39 @@ namespace DigitalNegativeCreator.Components
             {
                 return;
             }
-            var imageFileName = ofd.FileName;
-
-            var originalImageBitmap = (Bitmap)Bitmap.FromFile(imageFileName, true);
-            SetImageInfo(originalImageBitmap, imageFileName);
+            Filename = ofd.FileName;
+            ImageFile = (Bitmap)Bitmap.FromFile(Filename, true);
+            SetImageInfo(ImageFile, Filename);
         }
 
         private void _createNegativeButton_Click(object sender, EventArgs e)
         {
+            if (MainForm.SettingsEntity.SortedGrayscaleColorMapping == null || MainForm.SettingsEntity.SortedGrayscaleColorMapping.Count == 0)
+            {
+                MainForm.LoadGrayscaleMappingFile();
+            }
 
+            if (null == MainForm.SettingsEntity?.SortedGrayscaleColorMapping) return; // todo: show message?
+
+            Cursor = Cursors.WaitCursor;
+            try
+            {
+                DateTime now = DateTime.Now;
+                var negativeFileName = $"{Path.GetFileNameWithoutExtension(Filename)}_negative_{now.Year}_{now.Month}_{now.Day}_{now.Hour}_{now.Minute}_{now.Second}.tiff";
+                NegativeFile = ImageUtilities.CreateNegative(ImageFile, MainForm.SettingsEntity, Filename, negativeFileName);
+                if (null != NegativeFile)
+                {
+                    _negativePictureBox.Image = NegativeFile;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                Cursor = Cursors.Default;
+            }
         }
 
         private void _saveImageButton_Click(object sender, EventArgs e)

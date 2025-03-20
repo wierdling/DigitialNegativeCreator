@@ -1,9 +1,76 @@
-﻿using System.Drawing.Imaging;
+﻿using DigitalNegativeCreator.Entities;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 
 namespace DigitalNegativeCreator
 {
     public static class ImageUtilities
     {
+        public static Bitmap? CreateNegative(Bitmap originalImageBitmap, SettingsEntity settingsEntity, string imageFileName, string negativeFileName)
+        {
+            Bitmap bmp = (Bitmap)originalImageBitmap.Clone();
+            ImageUtilities.DesaturateBitmap(bmp);
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipX);
+
+            Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
+            IntPtr ptr = bmpData.Scan0;
+            int stride = bmpData.Stride;
+            int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
+            var regularDict = new Dictionary<Color, Point>();
+            foreach(var kvp in settingsEntity.SortedGrayscaleColorMapping)
+            {
+                regularDict.Add(kvp.Key, kvp.Value);
+            }
+            unsafe
+            {
+                for (int y = 0; y < bmp.Height; y++)
+                {
+                    for (int x = 0; x < bmp.Width; x++)
+                    {
+                        byte* pixel = (byte*)ptr + (y * stride) + (x * bytesPerPixel);
+                        byte blue = (byte)(255 - pixel[0]); // image is desaturated now, so ok to just use first color component from pixel (inverted).
+                        var color = regularDict.Keys.FirstOrDefault(x => x.B == blue);
+                        if (!color.IsEmpty)
+                        {
+                            var point = regularDict[color];
+                            var swapColor = settingsEntity.ColorPointMappings[point];
+                            pixel[0] = swapColor.R;
+                            pixel[1] = swapColor.G;
+                            pixel[2] = swapColor.B;
+                        }
+                    }
+                }
+            }
+
+            bmp.UnlockBits(bmpData);
+            var now = DateTime.Now;
+
+            bmp.Save(Path.Combine(Path.GetDirectoryName(imageFileName), negativeFileName), ImageFormat.Tiff);
+            return bmp;
+
+        }
+
+        public static Bitmap ResizeBitmap(Bitmap originalBitmap, int width, int height)
+        {
+            // Create a new bitmap with the desired size
+            Bitmap resizedBitmap = new Bitmap(width, height);
+
+            // Use Graphics for high-quality resizing
+            using (Graphics graphics = Graphics.FromImage(resizedBitmap))
+            {
+                // Set high-quality interpolation mode
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+
+                // Draw the original image onto the resized bitmap
+                graphics.DrawImage(originalBitmap, 0, 0, width, height);
+            }
+
+            return resizedBitmap;
+        }
+
         public static void DesaturateBitmap(Bitmap bmp)
         {
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);

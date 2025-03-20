@@ -34,14 +34,13 @@
             _createNegativeToolstripButton = new ToolStripButton();
             _imageTabs = new TabControl();
             tabPage1 = new TabPage();
-            _resizeImageToolstripButton = new ToolStripButton();
             toolStrip1.SuspendLayout();
             _imageTabs.SuspendLayout();
             SuspendLayout();
             // 
             // toolStrip1
             // 
-            toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripButton1, _createNegativeToolstripButton, _resizeImageToolstripButton });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripButton1, _createNegativeToolstripButton });
             toolStrip1.Location = new Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(1057, 25);
@@ -88,16 +87,6 @@
             tabPage1.Text = "tabPage1";
             tabPage1.UseVisualStyleBackColor = true;
             // 
-            // _resizeImageToolstripButton
-            // 
-            _resizeImageToolstripButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            _resizeImageToolstripButton.Image = (Image)resources.GetObject("_resizeImageToolstripButton.Image");
-            _resizeImageToolstripButton.ImageTransparentColor = Color.Magenta;
-            _resizeImageToolstripButton.Name = "_resizeImageToolstripButton";
-            _resizeImageToolstripButton.Size = new Size(23, 22);
-            _resizeImageToolstripButton.Text = "toolStripButton2";
-            _resizeImageToolstripButton.Click += _resizeImageToolstripButton_Click;
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -122,6 +111,5 @@
         private ToolStripButton _createNegativeToolstripButton;
         private TabControl _imageTabs;
         private TabPage tabPage1;
-        private ToolStripButton _resizeImageToolstripButton;
     }
 }
