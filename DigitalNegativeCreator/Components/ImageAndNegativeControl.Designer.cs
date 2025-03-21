@@ -28,11 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ImageAndNegativeControl));
             _imagesSplitContainer = new SplitContainer();
+            toolStrip1 = new ToolStrip();
+            _saveImageToolstripButton = new ToolStripButton();
+            _saveImageAsToolstripButton = new ToolStripButton();
+            toolStripButton3 = new ToolStripButton();
             panel2 = new Panel();
-            panel1 = new Panel();
-            _saveImageButton = new Button();
-            _createNegativeButton = new Button();
             _currentImageInfoGroupBox = new GroupBox();
             _yResolutionTextBox = new TextBox();
             _xResolutionTextBox = new TextBox();
@@ -57,14 +60,18 @@
             label8 = new Label();
             _imageNameLabel = new Label();
             _imagesPictureBox = new PictureBox();
+            toolStrip2 = new ToolStrip();
+            _saveNegativeToolstripButton = new ToolStripButton();
+            _createNegativesToolstripButton = new ToolStripButton();
             label9 = new Label();
             _negativePictureBox = new PictureBox();
+            toolTip1 = new ToolTip(components);
             ((System.ComponentModel.ISupportInitialize)_imagesSplitContainer).BeginInit();
             _imagesSplitContainer.Panel1.SuspendLayout();
             _imagesSplitContainer.Panel2.SuspendLayout();
             _imagesSplitContainer.SuspendLayout();
+            toolStrip1.SuspendLayout();
             panel2.SuspendLayout();
-            panel1.SuspendLayout();
             _currentImageInfoGroupBox.SuspendLayout();
             groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)_scaleYResolutionNumberBox).BeginInit();
@@ -72,6 +79,7 @@
             ((System.ComponentModel.ISupportInitialize)_scaleHeightNumberBox).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_scaleWidthNumberBox).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_imagesPictureBox).BeginInit();
+            toolStrip2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)_negativePictureBox).BeginInit();
             SuspendLayout();
             // 
@@ -83,59 +91,68 @@
             // 
             // _imagesSplitContainer.Panel1
             // 
+            _imagesSplitContainer.Panel1.Controls.Add(toolStrip1);
             _imagesSplitContainer.Panel1.Controls.Add(panel2);
             _imagesSplitContainer.Panel1.Controls.Add(_imageNameLabel);
             _imagesSplitContainer.Panel1.Controls.Add(_imagesPictureBox);
             // 
             // _imagesSplitContainer.Panel2
             // 
+            _imagesSplitContainer.Panel2.Controls.Add(toolStrip2);
             _imagesSplitContainer.Panel2.Controls.Add(label9);
             _imagesSplitContainer.Panel2.Controls.Add(_negativePictureBox);
             _imagesSplitContainer.Size = new Size(1451, 726);
-            _imagesSplitContainer.SplitterDistance = 802;
+            _imagesSplitContainer.SplitterDistance = 665;
             _imagesSplitContainer.TabIndex = 0;
+            // 
+            // toolStrip1
+            // 
+            toolStrip1.Items.AddRange(new ToolStripItem[] { _saveImageToolstripButton, _saveImageAsToolstripButton, toolStripButton3 });
+            toolStrip1.Location = new Point(0, 0);
+            toolStrip1.Name = "toolStrip1";
+            toolStrip1.Size = new Size(665, 25);
+            toolStrip1.TabIndex = 12;
+            toolStrip1.Text = "toolStrip1";
+            // 
+            // _saveImageToolstripButton
+            // 
+            _saveImageToolstripButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            _saveImageToolstripButton.Image = (Image)resources.GetObject("_saveImageToolstripButton.Image");
+            _saveImageToolstripButton.ImageTransparentColor = Color.Black;
+            _saveImageToolstripButton.Name = "_saveImageToolstripButton";
+            _saveImageToolstripButton.Size = new Size(23, 22);
+            _saveImageToolstripButton.Text = "Save Image";
+            _saveImageToolstripButton.Click += _saveImageButton_Click;
+            // 
+            // _saveImageAsToolstripButton
+            // 
+            _saveImageAsToolstripButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            _saveImageAsToolstripButton.Image = (Image)resources.GetObject("_saveImageAsToolstripButton.Image");
+            _saveImageAsToolstripButton.ImageTransparentColor = Color.Black;
+            _saveImageAsToolstripButton.Name = "_saveImageAsToolstripButton";
+            _saveImageAsToolstripButton.Size = new Size(23, 22);
+            _saveImageAsToolstripButton.Text = "Save Image As";
+            _saveImageAsToolstripButton.Click += _saveImageAsToolstripButton_Click;
+            // 
+            // toolStripButton3
+            // 
+            toolStripButton3.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripButton3.Image = (Image)resources.GetObject("toolStripButton3.Image");
+            toolStripButton3.ImageTransparentColor = Color.Magenta;
+            toolStripButton3.Name = "toolStripButton3";
+            toolStripButton3.Size = new Size(23, 22);
+            toolStripButton3.Text = "toolStripButton3";
             // 
             // panel2
             // 
             panel2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel2.AutoScroll = true;
-            panel2.Controls.Add(panel1);
             panel2.Controls.Add(_currentImageInfoGroupBox);
             panel2.Controls.Add(groupBox1);
             panel2.Location = new Point(5, 515);
             panel2.Name = "panel2";
-            panel2.Size = new Size(794, 208);
+            panel2.Size = new Size(657, 208);
             panel2.TabIndex = 11;
-            // 
-            // panel1
-            // 
-            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            panel1.Controls.Add(_saveImageButton);
-            panel1.Controls.Add(_createNegativeButton);
-            panel1.Location = new Point(3, 11);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(117, 189);
-            panel1.TabIndex = 11;
-            // 
-            // _saveImageButton
-            // 
-            _saveImageButton.Location = new Point(3, 32);
-            _saveImageButton.Name = "_saveImageButton";
-            _saveImageButton.Size = new Size(75, 23);
-            _saveImageButton.TabIndex = 1;
-            _saveImageButton.Text = "Save Image";
-            _saveImageButton.UseVisualStyleBackColor = true;
-            _saveImageButton.Click += _saveImageButton_Click;
-            // 
-            // _createNegativeButton
-            // 
-            _createNegativeButton.Location = new Point(3, 3);
-            _createNegativeButton.Name = "_createNegativeButton";
-            _createNegativeButton.Size = new Size(101, 23);
-            _createNegativeButton.TabIndex = 0;
-            _createNegativeButton.Text = "Create Negative";
-            _createNegativeButton.UseVisualStyleBackColor = true;
-            _createNegativeButton.Click += _createNegativeButton_Click;
             // 
             // _currentImageInfoGroupBox
             // 
@@ -148,7 +165,7 @@
             _currentImageInfoGroupBox.Controls.Add(label4);
             _currentImageInfoGroupBox.Controls.Add(label1);
             _currentImageInfoGroupBox.Controls.Add(label3);
-            _currentImageInfoGroupBox.Location = new Point(126, 11);
+            _currentImageInfoGroupBox.Location = new Point(3, 11);
             _currentImageInfoGroupBox.Name = "_currentImageInfoGroupBox";
             _currentImageInfoGroupBox.Size = new Size(201, 189);
             _currentImageInfoGroupBox.TabIndex = 6;
@@ -242,9 +259,9 @@
             groupBox1.Controls.Add(label6);
             groupBox1.Controls.Add(label7);
             groupBox1.Controls.Add(label8);
-            groupBox1.Location = new Point(333, 11);
+            groupBox1.Location = new Point(210, 10);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(384, 190);
+            groupBox1.Size = new Size(444, 190);
             groupBox1.TabIndex = 10;
             groupBox1.TabStop = false;
             groupBox1.Text = "Scale Image";
@@ -268,8 +285,9 @@
             _widthHeightTypeComboBox.Items.AddRange(new object[] { "px", "percent", "inches", "millimeters" });
             _widthHeightTypeComboBox.Location = new Point(252, 31);
             _widthHeightTypeComboBox.Name = "_widthHeightTypeComboBox";
-            _widthHeightTypeComboBox.Size = new Size(121, 23);
+            _widthHeightTypeComboBox.Size = new Size(103, 23);
             _widthHeightTypeComboBox.TabIndex = 12;
+            _widthHeightTypeComboBox.SelectedIndexChanged += _widthHeightTypeComboBox_SelectedIndexChanged;
             // 
             // _scaleResolutionRatioLockedCheckBox
             // 
@@ -370,7 +388,7 @@
             // _imageNameLabel
             // 
             _imageNameLabel.AutoSize = true;
-            _imageNameLabel.Location = new Point(5, 6);
+            _imageNameLabel.Location = new Point(5, 26);
             _imageNameLabel.Name = "_imageNameLabel";
             _imageNameLabel.Size = new Size(38, 15);
             _imageNameLabel.TabIndex = 1;
@@ -379,17 +397,46 @@
             // _imagesPictureBox
             // 
             _imagesPictureBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            _imagesPictureBox.Location = new Point(3, 26);
+            _imagesPictureBox.Location = new Point(3, 53);
             _imagesPictureBox.Name = "_imagesPictureBox";
-            _imagesPictureBox.Size = new Size(796, 483);
+            _imagesPictureBox.Size = new Size(659, 456);
             _imagesPictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             _imagesPictureBox.TabIndex = 0;
             _imagesPictureBox.TabStop = false;
             // 
+            // toolStrip2
+            // 
+            toolStrip2.Items.AddRange(new ToolStripItem[] { _saveNegativeToolstripButton, _createNegativesToolstripButton });
+            toolStrip2.Location = new Point(0, 0);
+            toolStrip2.Name = "toolStrip2";
+            toolStrip2.Size = new Size(782, 25);
+            toolStrip2.TabIndex = 4;
+            toolStrip2.Text = "toolStrip2";
+            // 
+            // _saveNegativeToolstripButton
+            // 
+            _saveNegativeToolstripButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            _saveNegativeToolstripButton.Image = (Image)resources.GetObject("_saveNegativeToolstripButton.Image");
+            _saveNegativeToolstripButton.ImageTransparentColor = Color.Black;
+            _saveNegativeToolstripButton.Name = "_saveNegativeToolstripButton";
+            _saveNegativeToolstripButton.Size = new Size(23, 22);
+            _saveNegativeToolstripButton.Text = "Save Negative";
+            _saveNegativeToolstripButton.Click += _saveNegativeToolstripButton_Click;
+            // 
+            // _createNegativesToolstripButton
+            // 
+            _createNegativesToolstripButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            _createNegativesToolstripButton.Image = (Image)resources.GetObject("_createNegativesToolstripButton.Image");
+            _createNegativesToolstripButton.ImageTransparentColor = Color.Magenta;
+            _createNegativesToolstripButton.Name = "_createNegativesToolstripButton";
+            _createNegativesToolstripButton.Size = new Size(23, 22);
+            _createNegativesToolstripButton.Text = "Create Negative";
+            _createNegativesToolstripButton.Click += _createNegativeButton_Click;
+            // 
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(-74, 112);
+            label9.Location = new Point(3, 35);
             label9.Name = "label9";
             label9.Size = new Size(38, 15);
             label9.TabIndex = 3;
@@ -398,9 +445,9 @@
             // _negativePictureBox
             // 
             _negativePictureBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            _negativePictureBox.Location = new Point(-1, 26);
+            _negativePictureBox.Location = new Point(3, 53);
             _negativePictureBox.Name = "_negativePictureBox";
-            _negativePictureBox.Size = new Size(643, 483);
+            _negativePictureBox.Size = new Size(776, 456);
             _negativePictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             _negativePictureBox.TabIndex = 2;
             _negativePictureBox.TabStop = false;
@@ -418,8 +465,9 @@
             _imagesSplitContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)_imagesSplitContainer).EndInit();
             _imagesSplitContainer.ResumeLayout(false);
+            toolStrip1.ResumeLayout(false);
+            toolStrip1.PerformLayout();
             panel2.ResumeLayout(false);
-            panel1.ResumeLayout(false);
             _currentImageInfoGroupBox.ResumeLayout(false);
             _currentImageInfoGroupBox.PerformLayout();
             groupBox1.ResumeLayout(false);
@@ -429,6 +477,8 @@
             ((System.ComponentModel.ISupportInitialize)_scaleHeightNumberBox).EndInit();
             ((System.ComponentModel.ISupportInitialize)_scaleWidthNumberBox).EndInit();
             ((System.ComponentModel.ISupportInitialize)_imagesPictureBox).EndInit();
+            toolStrip2.ResumeLayout(false);
+            toolStrip2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)_negativePictureBox).EndInit();
             ResumeLayout(false);
         }
@@ -460,11 +510,16 @@
         private Label _imageNameLabel;
         private PictureBox _imagesPictureBox;
         private Panel panel2;
-        private Panel panel1;
-        private Button _saveImageButton;
-        private Button _createNegativeButton;
         private Button _scaleButton;
         private Label label9;
         private PictureBox _negativePictureBox;
+        private ToolStrip toolStrip1;
+        private ToolStripButton _saveImageToolstripButton;
+        private ToolStripButton _saveImageAsToolstripButton;
+        private ToolStripButton toolStripButton3;
+        private ToolStrip toolStrip2;
+        private ToolStripButton _saveNegativeToolstripButton;
+        private ToolStripButton _createNegativesToolstripButton;
+        private ToolTip toolTip1;
     }
 }

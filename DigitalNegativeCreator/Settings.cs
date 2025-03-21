@@ -56,7 +56,7 @@ namespace DigitalNegativeCreator
             return bmp;
         }
 
-       
+
 
         public Dictionary<Point, Color> LoadColorMappingForPrintedImage(string imagePath)
         {
@@ -66,7 +66,7 @@ namespace DigitalNegativeCreator
 
         private void Settings_Shown(object sender, EventArgs e)
         {
-            
+
         }
 
         private void CreateColorMappedImage(Dictionary<Point, Color> mappedColors)
@@ -175,7 +175,7 @@ namespace DigitalNegativeCreator
             CreateColorMappedImage(greyscaleMappedColors);
             MappedColorPoints = ImageUtilities.CreateColorMapping("EDN_HSB2_inverted.jpg");
             SortedDictionary<Color, Point> sortedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
-            foreach(var kvp in greyscaleMappedColors)
+            foreach (var kvp in greyscaleMappedColors)
             {
                 Color foundColor = sortedColors.Keys.FirstOrDefault(x => x.R == kvp.Value.R && x.G == kvp.Value.G && x.B == kvp.Value.B);
                 if (foundColor.R == 0 && foundColor.G == 0 && foundColor.B == 0 && foundColor.A == 0)
@@ -187,7 +187,7 @@ namespace DigitalNegativeCreator
             var normalizedGreyscaleMappedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
             byte max = sortedColors.First().Key.R; // they are greyscale so ok to use red.
             byte min = sortedColors.Last().Key.R;
-            foreach(var kvp in sortedColors)
+            foreach (var kvp in sortedColors)
             {
                 byte r = kvp.Key.R;
                 byte newR = (byte)((r - min) * (byte)255 / (max - min));
@@ -199,11 +199,11 @@ namespace DigitalNegativeCreator
             var now = DateTime.UtcNow;
             var fileName = $"MappedGrayscaleColors_{now.Year}_{now.Month}_{now.Day}_{now.Hour}_{now.Minute}_{now.Second}.json";
             var serializebleList = new List<KeyValuePair<string, Point>>();
-            foreach(var kvp in normalizedGreyscaleMappedColors)
+            foreach (var kvp in normalizedGreyscaleMappedColors)
             {
                 serializebleList.Add(new KeyValuePair<string, Point>(ColorToHex(kvp.Key), kvp.Value));
             }
-            string json = JsonSerializer.Serialize(serializebleList, new JsonSerializerOptions() { WriteIndented= true });
+            string json = JsonSerializer.Serialize(serializebleList, new JsonSerializerOptions() { WriteIndented = true });
             File.WriteAllText(fileName, json);
         }
 
@@ -265,6 +265,13 @@ namespace DigitalNegativeCreator
             {
                 MessageBox.Show("Finished.");
             }
+        }
+
+        private void _createTestImageButton_Click(object sender, EventArgs e)
+        {
+            var testImage = ImageUtilities.CreateTestImage();
+            testImage.Save("TestImageToPrint.png", ImageFormat.Png);
+
         }
     }
 }

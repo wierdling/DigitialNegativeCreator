@@ -51,10 +51,11 @@ namespace DigitalNegativeCreator
 
         }
 
-        public static Bitmap ResizeBitmap(Bitmap originalBitmap, int width, int height)
+        public static Bitmap ResizeBitmap(Bitmap originalBitmap, int width, int height, int verticalResolution, int horizontalResolution)
         {
             // Create a new bitmap with the desired size
             Bitmap resizedBitmap = new Bitmap(width, height);
+            resizedBitmap.SetResolution(verticalResolution, horizontalResolution);
 
             // Use Graphics for high-quality resizing
             using (Graphics graphics = Graphics.FromImage(resizedBitmap))
@@ -186,6 +187,176 @@ namespace DigitalNegativeCreator
                     break;
             }
             return mappedColors;
+        }
+
+        public static Bitmap CreateTestImage()
+        {
+
+            var dpi = 100; // using 100 vs 96 so everything works out mathmatically easier.
+            //  We want each block plus one spacer line to be .5 inches.
+            var rowHeight = .25 * dpi;
+            var paperWidth = 11.0;
+            var paperHeight = 8.5;
+            var spacer = (int)(.1 * dpi);
+            var blockSize = (int)(.4 * dpi);
+            var width = (int)(paperWidth * dpi);
+            var height = (int)(paperHeight * dpi);
+            var rows = height / rowHeight;
+            rows -= 2; // one blank row on top, one on bottom.
+            var columns = width / rowHeight; // row height is actually cell heght/width.
+            columns -= 2; // one blank at the beginning, one blank at the end.
+            Bitmap bmp = new Bitmap(width, height);
+            bmp.SetResolution(dpi, dpi);
+            Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
+            IntPtr ptr = bmpData.Scan0;
+            int stride = bmpData.Stride;
+            int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
+            var t = bmp.PixelFormat;
+
+            int startY = (int)(rowHeight);
+            int startX = (int)(rowHeight); ;
+            int cellSize = (int)(rowHeight);
+            int red = 0;
+            int blue = 0;
+            int green = 0;
+            int alpha = 255;
+            bool invertRed = false;
+            unsafe
+            {
+                for (int y = 0; y < rows; y++)
+                {
+                    var iy = startY + (y * cellSize);
+                    for (int x = 0; x < columns; x++)
+                    {
+                        var ix = startX + (x * cellSize);
+
+                        byte* pixel;
+                        for (int y2 = 0; y2 < 20; y2++)
+                        {
+                            int x2 = 0;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel); // 1
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel); // 5
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel); // 10
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);  // 15
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                            pixel = (byte*)ptr + ((iy + y2) * stride) + ((ix + x2++) * bytesPerPixel);  // 20
+                            pixel[0] = (byte)blue; // blue
+                            pixel[1] = (byte)green; // green
+                            pixel[2] = (byte)red; //   Red
+                            pixel[3] = (byte)alpha;
+                        }
+                    }
+                    alpha -= (int)((255 / rows) * 2);
+                    if (alpha < 0) alpha = 1;
+                    if (y == rows / 2) invertRed = true;
+                    if (invertRed)
+                    {
+                        red -= (int)((255 / rows) * 2);
+                        alpha = 255;
+                    }
+                    else
+                    {
+                        red += (int)((255 / rows) * 2);
+                    }
+   
+  
+
+                }
+                green += (int)(255 / columns);
+            }
+
+            return bmp;
         }
 
         private static byte GammaCorrect(ushort value)
