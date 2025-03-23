@@ -21,43 +21,6 @@ namespace DigitalNegativeCreator
         }
 
 
-        //  this doesn't work.  will have to figure out a better way.
-        [Obsolete]
-        public Bitmap CreateTestImage()
-        {
-            var width = 255 * 5 + 10;
-            var height = width;
-            var bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-            Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
-            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
-            int stride = bmpData.Stride;
-            int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
-            unsafe
-            {
-                for (int x = 0; x < 255; x++)
-                {
-                    var ix = 5 + (x * 5);
-                    for (int y = 0; y < 255; y++)
-                    {
-                        var iy = 5 + (y * 5);
-                        for (int xx = 0; xx < 5; xx++)
-                        {
-                            var fX = ix + xx;
-                            for (int yy = 0; yy < 5; yy++)
-                            {
-                                var fY = iy + yy;
-                                byte* pixel = (byte*)ptr + (fX * stride) + (fY * bytesPerPixel);
-                            }
-                        }
-                    }
-                }
-            }
-            return bmp;
-        }
-
-
-
         public Dictionary<Point, Color> LoadColorMappingForPrintedImage(string imagePath)
         {
             var bmp = new Bitmap(imagePath);
