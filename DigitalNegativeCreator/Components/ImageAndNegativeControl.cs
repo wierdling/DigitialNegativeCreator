@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace DigitalNegativeCreator.Components
+﻿namespace DigitalNegativeCreator.Components
 {
     public partial class ImageAndNegativeControl : UserControl
     {
@@ -33,6 +23,7 @@ namespace DigitalNegativeCreator.Components
         {
             var ofd = new OpenFileDialog();
             ofd.Title = "Open Main Image To Convert";
+            ofd.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.tiff;";
             if (DialogResult.OK != ofd.ShowDialog())
             {
                 return;
@@ -42,8 +33,9 @@ namespace DigitalNegativeCreator.Components
             SetImageInfo(ImageFile, Filename);
         }
 
-        private void _CreateColorMappedImageButton_Click(object sender, EventArgs e)
+        private void _CreateNegativeButton_Click(object sender, EventArgs e)
         {
+            //  Get the grayscale mapping file (json).
             if (MainForm.SettingsEntity.SortedGrayscaleColorMapping == null || MainForm.SettingsEntity.SortedGrayscaleColorMapping.Count == 0)
             {
                 MainForm.LoadGrayscaleMappingFile();
@@ -102,7 +94,7 @@ namespace DigitalNegativeCreator.Components
             SetImageInfoForPX();
         }
 
-        private void _scaleWidthNumberBox_ValueChanged(object sender, EventArgs e)
+        private void _scaleWidthNumberBox_ValueChanged(object? sender, EventArgs e)
         {
             if (!_aspectRationLockedCheckBox.Checked) return;
             RemoveHanlders();
@@ -111,7 +103,7 @@ namespace DigitalNegativeCreator.Components
             AddHandlers();
         }
 
-        private void _scaleHeightNumberBox_ValueChanged(object sender, EventArgs e)
+        private void _scaleHeightNumberBox_ValueChanged(object? sender, EventArgs e)
         {
             if (!_aspectRationLockedCheckBox.Checked) return;
             RemoveHanlders();

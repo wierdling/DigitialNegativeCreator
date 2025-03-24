@@ -1,25 +1,17 @@
 using DigitalNegativeCreator.Components;
 using DigitalNegativeCreator.Entities;
-using System.Drawing.Imaging;
 using System.Text.Json;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace DigitalNegativeCreator
 {
     public partial class MainForm : Form
     {
         public static SettingsEntity SettingsEntity = new SettingsEntity();
-        private Dictionary<string, string> ImageNegativePairs { get; set; } = new Dictionary<string, string>();
         public MainForm()
         {
             InitializeComponent();
             _imageTabs.TabPages.Clear();
-            //var testImage = ImageUtilities.CreateTestImage();
-            //testImage.Save("TestImageToPrint.png", ImageFormat.Png);
-            //if (File.Exists("./TestImageToPrinInvertedForTesting.png"))
-            //{
-            //    using Bitmap bmp = (Bitmap)Bitmap.FromFile("TestImageToPrinInvertedForTesting.png");
-            //    ImageUtilities.TestImgageScan(bmp);
-            //}
         }
 
         private void ShowSettings()
@@ -48,6 +40,7 @@ namespace DigitalNegativeCreator
             var ofd = new OpenFileDialog();
             ofd.FileName = string.Empty;
             ofd.Title = "Open Grayscale mapping file";
+            ofd.Filter = "json files (*.json)|*.json";
             if (DialogResult.OK != ofd.ShowDialog())
             {
                 return;
@@ -62,9 +55,7 @@ namespace DigitalNegativeCreator
             }
 
             SettingsEntity.SortedGrayscaleColorMapping = sortedColors;
-            SettingsEntity.ColorPointMappings = ImageUtilities.CreateColorMapping("EDN_HSB2_inverted.jpg");
-
+            SettingsEntity.ColorPointMappings = ImageUtilities.CreateColorMapping("TestImageToPrint.png");
         }
-
     }
 }

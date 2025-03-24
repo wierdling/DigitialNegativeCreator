@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
+﻿using System.Drawing.Imaging;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace DigitalNegativeCreator
 {
@@ -27,7 +18,7 @@ namespace DigitalNegativeCreator
             var bmp = new Bitmap(imagePath);
             ImageUtilities.DesaturateBitmap(bmp);
             var grayscaleBitmap = ImageUtilities.ConvertDesaturatedToGrayscale(bmp);
-            return ImageUtilities.CreateAveragedColorMapForFormat24bppRgb(bmp, 30, 30, 45);
+            return ImageUtilities.CreateAveragedColorMapForFormat24bppRgb(bmp, ImageUtilities.OFFSET, ImageUtilities.OFFSET, ImageUtilities.CELLSIZE);
         }
 
         private void Settings_Shown(object sender, EventArgs e)
@@ -37,10 +28,10 @@ namespace DigitalNegativeCreator
 
         private void CreateColorMappedImage(Dictionary<Point, Color> mappedColors)
         {
-            int startPoint = 52;
-            int offset = 22;
+            int startPoint = ImageUtilities.OFFSET + ImageUtilities.HALFCELLSIZE;
+            int yOffset = ImageUtilities.CELLSIZE; // cell size
             int mult = 20;
-            using Bitmap cm = new Bitmap(49 * mult, 63 * mult, PixelFormat.Format32bppArgb);
+            using Bitmap cm = new Bitmap(ImageUtilities.ROWS * mult, ImageUtilities.COLUMNS * mult, PixelFormat.Format32bppArgb);
             var rect2 = new Rectangle(0, 0, cm.Width, cm.Height);
             var bmpData2 = cm.LockBits(rect2, ImageLockMode.ReadOnly, cm.PixelFormat);
             IntPtr ptr2 = bmpData2.Scan0;
@@ -48,12 +39,12 @@ namespace DigitalNegativeCreator
             int bytesPerPixel2 = Image.GetPixelFormatSize(bmpData2.PixelFormat) / 8;
             unsafe
             {
-                for (int y = 0; y < 48; y++)
+                for (int y = 0; y < ImageUtilities.COLUMNS; y++)
                 {
-                    var iy = startPoint + (y * offset);
-                    for (int x = 0; x < 62; x++)
+                    var iy = startPoint + (y * yOffset);
+                    for (int x = 0; x < ImageUtilities.ROWS; x++)
                     {
-                        var ix = startPoint + (x * offset);
+                        var ix = startPoint + (x * yOffset);
                         var p = new Point(ix, iy);
                         var color = mappedColors[p];
                         for (int yy = 0; yy < mult; yy++)
@@ -73,21 +64,23 @@ namespace DigitalNegativeCreator
                 }
             }
             cm.UnlockBits(bmpData2);
-            cm.Save("test.png", ImageFormat.Png);
+            //cm.Save("test.png", ImageFormat.Png);
             var jpg = Bitmap.FromFile("test.png");
             _testImagePictureBox.Image = jpg;
         }
 
         private void CreateColorMappedImageButton_Click(object sender, EventArgs e)
         {
+            //  Load a scanned image that was printed using the test imge to print.
+            //  The printed image needs to be fully processed (toned, fixed, etc).
             var ofd = new OpenFileDialog();
             if (DialogResult.OK != ofd.ShowDialog())
             {
                 return;
             }
             Dictionary<Point, Color> greyscaleMappedColors = LoadColorMappingForPrintedImage(ofd.FileName);
-            CreateColorMappedImage(greyscaleMappedColors);
-            MappedColorPoints = ImageUtilities.CreateColorMapping("EDN_HSB2_inverted.jpg");
+            //CreateColorMappedImage(greyscaleMappedColors);
+            //MappedColorPoints = ImageUtilities.CreateColorMapping("TestImageToPrint.png");
             SortedDictionary<Color, Point> sortedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
             foreach (var kvp in greyscaleMappedColors)
             {

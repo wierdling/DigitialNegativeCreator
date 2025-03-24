@@ -1,6 +1,5 @@
 ﻿using DigitalNegativeCreator.Entities;
 using Emgu.CV.CvEnum;
-using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using Emgu.CV;
 using System.Drawing.Drawing2D;
@@ -14,11 +13,16 @@ namespace DigitalNegativeCreator
         private const int RED = 2;
         private const int GREEN = 1;
         private const int BLUE = 0;
+        public const int ROWS = 48;
+        public const int COLUMNS = 62;
+        public const int CELLSIZE = 45;
+        public const int HALFCELLSIZE = 22;
+        public const int OFFSET = 30;
 
         public static Bitmap? CreateNegative(Bitmap originalImageBitmap, SettingsEntity settingsEntity, string imageFileName, string negativeFileName)
         {
             Bitmap bmp = (Bitmap)originalImageBitmap.Clone();
-            ImageUtilities.DesaturateBitmap(bmp);
+            DesaturateBitmap(bmp);
             bmp.RotateFlip(RotateFlipType.RotateNoneFlipX);
 
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
@@ -43,10 +47,13 @@ namespace DigitalNegativeCreator
                         if (!color.IsEmpty)
                         {
                             var point = regularDict[color];
-                            var swapColor = settingsEntity.ColorPointMappings[point];
-                            pixel[0] = swapColor.R;
-                            pixel[1] = swapColor.G;
-                            pixel[2] = swapColor.B;
+                            if (settingsEntity.ColorPointMappings.ContainsKey(point))
+                            {
+                                var swapColor = settingsEntity.ColorPointMappings[point];
+                                pixel[0] = swapColor.R;
+                                pixel[1] = swapColor.G;
+                                pixel[2] = swapColor.B;
+                            }
                         }
                     }
                 }
@@ -167,7 +174,7 @@ namespace DigitalNegativeCreator
             //    CvInvoke.Imwrite("testDetectedImage.png", testImage);
 
               //if (ulX <= 0 || urX <= 0 || llX <= 0 || lrX <= 0) throw new ArgumentException("Could not find starting point for calculations."); // todo: show an error or something.
-                var greyscaleMappedColors =  CreateAveragedColorMapForFormat24bppRgb(scannedImage, 30, 30, 45);
+                var greyscaleMappedColors =  CreateAveragedColorMapForFormat24bppRgb(scannedImage, OFFSET, OFFSET, CELLSIZE);
                 SortedDictionary<Color, Point> sortedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
                 foreach (var kvp in greyscaleMappedColors)
                 {
@@ -242,14 +249,14 @@ namespace DigitalNegativeCreator
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
-            int startPoint = 78 + 35;
-            int offset = 74;
+            int startPoint = OFFSET + HALFCELLSIZE;
+            int offset = CELLSIZE;
             unsafe
             {
-                for (int y = 0; y < 21; y++)
+                for (int y = 0; y < ROWS; y++)
                 {
                     var iy = startPoint + (y * offset);
-                    for (int x = 0; x < 36; x++)
+                    for (int x = 0; x < COLUMNS; x++)
                     {
                         var ix = startPoint + (x * offset);
                         byte* pixel = (byte*)ptr + (iy * stride) + (ix * bytesPerPixel);
@@ -259,9 +266,6 @@ namespace DigitalNegativeCreator
                         ushort red = (ushort)(pixel[5] << 8 | pixel[4]);
                         var color = Color.FromArgb(255, GammaCorrect(red), GammaCorrect(green), GammaCorrect(blue));
                         mappedColors.Add(new Point(ix, iy), color);
-                        //int gray = (int)(0.299 * red + 0.587 * green + 0.114 * blue);
-                        //var grayColor = Color.FromArgb(alpha, gray, gray, gray);
-
                     }
                 }
             }
@@ -276,14 +280,14 @@ namespace DigitalNegativeCreator
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
-            int startPoint = 78 + 35;
-            int offset = 74;
+            int startPoint = OFFSET + HALFCELLSIZE;
+            int offset = CELLSIZE;
             unsafe
             {
-                for (int y = 0; y < 21; y++)
+                for (int y = 0; y < ROWS; y++)
                 {
                     var iy = startPoint + (y * offset);
-                    for (int x = 0; x < 36; x++)
+                    for (int x = 0; x < COLUMNS; x++)
                     {
                         var ix = startPoint + (x * offset);
                         byte* pixel = (byte*)ptr + (iy * stride) + (ix * bytesPerPixel);
@@ -292,10 +296,7 @@ namespace DigitalNegativeCreator
                         byte green = pixel[1];
                         byte red = pixel[2];
                         var color = Color.FromArgb(255, red, green, blue);
-                        //var color = Color.FromArgb(255, red >> 8, green >> 8, blue >> 8));
                         mappedColors.Add(new Point(ix, iy), color);
-                        //int gray = (int)(0.299 * red + 0.587 * green + 0.114 * blue);
-                        //var grayColor = Color.FromArgb(alpha, gray, gray, gray);
 
                     }
                 }
@@ -319,6 +320,9 @@ namespace DigitalNegativeCreator
             return mappedColors;
         }
 
+        //  This will create an image with 48 rows and 62 columns.
+        //  Each block of color is 45 px in size.
+        //  The first one starts at 30, 30
         public static Bitmap CreateTestImage()
         {
             var cellInchSize = .175;
@@ -1014,14 +1018,14 @@ namespace DigitalNegativeCreator
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
-            int startPoint = startX + (cellSize / 2);
+            int startPoint = startX + HALFCELLSIZE;
             int offset = cellSize;
             unsafe
             {
-                for (int columnCount = 0; columnCount < 62; columnCount++)
+                for (int columnCount = 0; columnCount < COLUMNS; columnCount++)
                 {
                     var iy = startPoint + (columnCount * offset);
-                    for (int rowCount = 0; rowCount < 48; rowCount++)
+                    for (int rowCount = 0; rowCount < ROWS; rowCount++)
                     {
                         var ix = startPoint + (rowCount * offset);
                         var color = GetPixelNeighborsAverage(ix, iy, ptr, stride, bytesPerPixel);
@@ -1040,7 +1044,7 @@ namespace DigitalNegativeCreator
             int sumR = 0, sumG = 0, sumB = 0, count = 0;
             for (int dx = -1; dx <= 1; dx++)
             {
-                for (int dy = -5; dy <= 5; dy++)
+                for (int dy = -1; dy <= 1; dy++)
                 {
                     int nx = x + dx;    
                     int ny = y + dy;

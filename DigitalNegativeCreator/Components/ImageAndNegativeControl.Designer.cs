@@ -431,7 +431,7 @@
             _createNegativesToolstripButton.Name = "_createNegativesToolstripButton";
             _createNegativesToolstripButton.Size = new Size(23, 22);
             _createNegativesToolstripButton.Text = "Create Negative";
-            _createNegativesToolstripButton.Click += _CreateColorMappedImageButton_Click;
+            _createNegativesToolstripButton.Click += _CreateNegativeButton_Click;
             // 
             // label9
             // 
