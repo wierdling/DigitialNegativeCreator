@@ -13,8 +13,13 @@ namespace DigitalNegativeCreator
         {
             InitializeComponent();
             _imageTabs.TabPages.Clear();
-            var testImage = ImageUtilities.CreateTestImage();
-            testImage.Save("TestImageToPrint.png", ImageFormat.Png);
+            //var testImage = ImageUtilities.CreateTestImage();
+            //testImage.Save("TestImageToPrint.png", ImageFormat.Png);
+            //if (File.Exists("./TestImageToPrinInvertedForTesting.png"))
+            //{
+            //    using Bitmap bmp = (Bitmap)Bitmap.FromFile("TestImageToPrinInvertedForTesting.png");
+            //    ImageUtilities.TestImgageScan(bmp);
+            //}
         }
 
         private void ShowSettings()
@@ -23,7 +28,7 @@ namespace DigitalNegativeCreator
             s.ShowDialog();
         }
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
+        private void toolStripCreateColorMappedImageButton_Click(object sender, EventArgs e)
         {
             ShowSettings();
         }

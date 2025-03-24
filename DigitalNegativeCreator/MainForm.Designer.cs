@@ -55,7 +55,7 @@
             toolStripButton1.Name = "toolStripButton1";
             toolStripButton1.Size = new Size(23, 22);
             toolStripButton1.Text = "Settings";
-            toolStripButton1.Click += toolStripButton1_Click;
+            toolStripButton1.Click += toolStripCreateColorMappedImageButton_Click;
             // 
             // _createNegativeToolstripButton
             // 

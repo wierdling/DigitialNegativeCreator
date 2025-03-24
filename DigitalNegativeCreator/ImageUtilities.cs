@@ -1,8 +1,10 @@
 ﻿using DigitalNegativeCreator.Entities;
-using System.Diagnostics.Eventing.Reader;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
+using Emgu.CV.Util;
+using Emgu.CV;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
 
 namespace DigitalNegativeCreator
 {
@@ -25,7 +27,7 @@ namespace DigitalNegativeCreator
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             var regularDict = new Dictionary<Color, Point>();
-            foreach(var kvp in settingsEntity.SortedGrayscaleColorMapping)
+            foreach (var kvp in settingsEntity.SortedGrayscaleColorMapping)
             {
                 regularDict.Add(kvp.Key, kvp.Value);
             }
@@ -56,6 +58,127 @@ namespace DigitalNegativeCreator
             bmp.Save(Path.Combine(Path.GetDirectoryName(imageFileName), negativeFileName), ImageFormat.Tiff);
             return bmp;
 
+        }
+
+        public static SortedDictionary<Color, Point> TestImgageScan(Bitmap scannedImage)
+        {
+            //  First desatureate and save bitmap.
+            DesaturateBitmap(scannedImage);
+            var grayscaleBitmap = ConvertDesaturatedToGrayscale(scannedImage);
+            //  Now we need to invert it as the border should be white with black shapes.
+            //  the library needs to have white shapes.
+            //var newImage = InvertGrayscale(grayscaleBitmap);
+            //Mat grayImage = grayscaleBitmap.ToImage<Gray, byte>().Mat;
+
+            //var testOutBmp = new Bitmap(grayscaleBitmap.Width, grayscaleBitmap.Height, PixelFormat.Format24bppRgb);
+            //Mat testImage = testOutBmp.ToImage<Gray, byte>().Mat;
+
+            ////  Get test images.
+            //if (!File.Exists("OnePlus.png")
+            //    || !File.Exists("TwoPlus.png")
+            //    || !File.Exists("ThreePlus.png")
+            //    || !File.Exists("FourPlus.png"))
+            //{
+            //    CreateTestShapeImages();
+            //}
+
+            //var chainApproxMethod = ChainApproxMethod.ChainApproxNone;
+
+            ////  Diamond, spade, club, heart.
+            //var (onePlusContours, allSpaceContours) = GetContour("OnePlus.png", chainApproxMethod);
+            //var (twoPlusContours, allDiamonContours) = GetContour("TwoPlus.png", chainApproxMethod);
+            //var (threePlusContours, allHeartContours) = GetContour("ThreePlus.png", chainApproxMethod);
+            //var (fourPlusContours, allClubContours) = GetContour("FourPlus.png", chainApproxMethod);
+
+            ////CvInvoke.DrawContours(testImage, allSpaceContours, -1, new MCvScalar(128, 128, 128), 1);
+            //// Convert to binary using Otsu thresholding (invert: suits are black)
+            //Mat binaryImage = new Mat();
+            //CvInvoke.Threshold(grayImage, binaryImage, 0, 255, ThresholdType.BinaryInv | ThresholdType.Otsu);
+            //CvInvoke.Imwrite("grayImage2.png", binaryImage);
+
+            ////  Single plus == upper left hand.
+            ////  double plus == upper right
+            ////  tripple plus == lower left
+            ////  four plus == lower right
+            //int ulX = 0, ulY = 0;
+            //int urX = 0, urY = 0;
+            //int llX = 0, llY = 0;
+            //int lrX = 0, lrY = 0;
+
+            //// Detect contours
+            //using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
+            //{
+            //    CvInvoke.FindContours(binaryImage, contours, null, RetrType.External, chainApproxMethod);
+            //    for (int i = 0; i < contours.Size; i++)
+            //    {
+            //        VectorOfPoint contour = contours[i];
+            //        Rectangle boundingBox = CvInvoke.BoundingRectangle(contour);
+            //        double scale = 100.0 / Math.Max(boundingBox.Width, boundingBox.Height);
+            //        Matrix<double> scaleMat = new Matrix<double>(2, 3);
+            //        scaleMat.SetIdentity();
+            //        scaleMat[0, 0] = scale;
+            //        scaleMat[1, 1] = scale;
+
+            //        VectorOfPoint scaledContour = new VectorOfPoint();
+            //        CvInvoke.Transform(contour, scaledContour, scaleMat);
+
+            //        double onePlusMatchSCore = CvInvoke.MatchShapes(onePlusContours, scaledContour, ContoursMatchType.I1, 0);
+            //        // Lower score means better match (0.0 is perfect)
+            //        if (onePlusMatchSCore < .2)
+            //        {
+            //            // This is likely a spade
+            //            var moments = CvInvoke.Moments(contour);
+            //            ulX = (int)(moments.M10 / moments.M00);
+            //            ulY = (int)(moments.M01 / moments.M00);
+            //            // Optional: Draw match
+            //            CvInvoke.DrawContours(testImage, contours, i, new MCvScalar(128, 128, 128), 1);
+            //        }
+
+            //        double threePlusMatchScore = CvInvoke.MatchShapes(threePlusContours, scaledContour, ContoursMatchType.I1, 0);
+            //        if (threePlusMatchScore < 1)
+            //        {
+            //            var moments = CvInvoke.Moments(contour);
+            //            llX = (int)(moments.M10 / moments.M00);
+            //            llY = (int)(moments.M01 / moments.M00);
+            //            CvInvoke.DrawContours(testImage, contours, i, new MCvScalar(128, 128, 128), 1);
+            //        }
+
+            //        double twoPlusMatchScore = CvInvoke.MatchShapes(twoPlusContours, scaledContour, ContoursMatchType.I1, 0);
+            //        if (twoPlusMatchScore < .3)
+            //        {
+            //            var moments = CvInvoke.Moments(contour);
+            //            urX = (int)(moments.M10 / moments.M00);
+            //            urY = (int)(moments.M01 / moments.M00);
+            //            CvInvoke.DrawContours(testImage, contours, i, new MCvScalar(128, 128, 128), 1);
+            //        }
+
+            //        double fourPlusMatchScore = CvInvoke.MatchShapes(fourPlusContours, scaledContour, ContoursMatchType.I1, 0);
+            //        if (fourPlusMatchScore < .2)
+            //        {
+            //            var moments = CvInvoke.Moments(contour);
+            //            lrX = (int)(moments.M10 / moments.M00);
+            //            lrY = (int)(moments.M01 / moments.M00);
+            //            CvInvoke.DrawContours(testImage, contours, i, new MCvScalar(128, 128, 128), 1);
+            //        }
+            //        //System.Diagnostics.Debug.WriteLine($"onePlusMatchScore: {onePlusMatchSCore}. threePlusMatchScore: {threePlusMatchScore}. twoPlusMatchScore: {twoPlusMatchScore}. fourPlusMatchScore: {fourPlusMatchScore}");
+            //    }
+
+            //    // Save the result for visual testing.
+            //    CvInvoke.Imwrite("testDetectedImage.png", testImage);
+
+              //if (ulX <= 0 || urX <= 0 || llX <= 0 || lrX <= 0) throw new ArgumentException("Could not find starting point for calculations."); // todo: show an error or something.
+                var greyscaleMappedColors =  CreateAveragedColorMapForFormat24bppRgb(scannedImage, 30, 30, 45);
+                SortedDictionary<Color, Point> sortedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
+                foreach (var kvp in greyscaleMappedColors)
+                {
+                    Color foundColor = sortedColors.Keys.FirstOrDefault(x => x.R == kvp.Value.R && x.G == kvp.Value.G && x.B == kvp.Value.B);
+                    if (foundColor.R == 0 && foundColor.G == 0 && foundColor.B == 0 && foundColor.A == 0)
+                    {
+                        sortedColors.Add(kvp.Value, kvp.Key);
+                    }
+                }
+                return sortedColors;
+            //}
         }
 
         public static Bitmap ResizeBitmap(Bitmap originalBitmap, int width, int height, int verticalResolution, int horizontalResolution)
@@ -198,9 +321,9 @@ namespace DigitalNegativeCreator
 
         public static Bitmap CreateTestImage()
         {
-            var cellInchSize = .234;
-            var border = .05;
-            var dpi = 100; // using 100 vs 96 so everything works out mathmatically easier.
+            var cellInchSize = .175;
+            var border = .025;
+            var dpi = 300;
             //  We want each block plus one spacer line to be .5 inches.
             var rowHeight = cellInchSize * dpi;
             var paperWidth = 11.0;
@@ -212,7 +335,7 @@ namespace DigitalNegativeCreator
             var rows = (int)(height / rowHeight);
             //rows -= 1; // one blank row on top
             var columns = (int)(width / rowHeight); // row height is actually cell heght/width.
-            columns -= 2; // one blank at the beginning, one blank at the end.
+            //columns -= 5; // one blank at the beginning, one blank at the end.
             Bitmap bmp = new Bitmap(width, height);
             bmp.SetResolution(dpi, dpi);
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
@@ -222,32 +345,32 @@ namespace DigitalNegativeCreator
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             var t = bmp.PixelFormat;
 
-            int startY = (int)(rowHeight / 2);
-            int startX = (int)(rowHeight * 1.5);
+            int startY = 30;
+            int startX = 30;
             int cellSize = (int)(rowHeight);
             int red = 0;
             int blue = 0;
             int green = 0;
 
-            var smallStep = 7;
-            var largeStep = (255 - (smallStep * 17)) / 17;
-            var centerRow = 18; // 0 index, actual row 19
-            var babyStep = 2;
+            var centerRow = 23; // 0 index, actual row 19
+            var babyStep = 1;
 
             var redColumn = 0;
-            var greenColumn = 15;
-            var blueColumn = 30;
-            var columnOffset = 8;
+            var greenColumn = 21;
+            var blueColumn = 42;
+            var columnOffset = 11;
             int c = 0;
+
+            int cmult = 11;
 
             unsafe
             {
                 byte* pixel;
                 int currentColumn;
 
-                for(int c1 = 0; c1 < bmp.Width; c1++)
+                for (int c1 = 0; c1 < bmp.Width; c1++)
                 {
-                    for(int r1 = 0; r1 < bmp.Height; r1++)
+                    for (int r1 = 0; r1 < bmp.Height; r1++)
                     {
                         pixel = (byte*)ptr + (r1 * stride) + (c1 * bytesPerPixel);
                         pixel[GREEN] = (byte)0;
@@ -258,7 +381,7 @@ namespace DigitalNegativeCreator
                 }
 
                 //  First row, 0 for everything.
-                for(int columnCount = 0; columnCount < columns; columnCount++)
+                for (int columnCount = 0; columnCount < columns; columnCount++)
                 {
                     currentColumn = startX + (columnCount * cellSize);
                     var iy = startY; // 1 == rowcount
@@ -277,7 +400,6 @@ namespace DigitalNegativeCreator
                 //  first set of columns, increments of red to center row, then max red.
                 red = 0;
                 currentColumn = startX;
-
                 for (int columnCount = 0; columnCount < columnOffset; columnCount++)
                 {
                     red = 0;
@@ -293,7 +415,7 @@ namespace DigitalNegativeCreator
                                 pixel[RED] = (byte)red;
                             }
                         }
-                        red += 15;
+                        red += cmult;
                         if (red > 255) red = 255;
                     }
                 }
@@ -313,7 +435,7 @@ namespace DigitalNegativeCreator
                                 pixel[RED] = (byte)red;
                             }
                         }
-                        red += 15;
+                        red += cmult;
                         if (red > 255) red = 255;
                     }
                 }
@@ -334,7 +456,7 @@ namespace DigitalNegativeCreator
                                 pixel[GREEN] = (byte)green;
                             }
                         }
-                        green += 15;
+                        green += cmult;
                         if (green > 255) green = 255;
                     }
                 }
@@ -355,7 +477,7 @@ namespace DigitalNegativeCreator
                                 pixel[BLUE] = (byte)blue;
                             }
                         }
-                        blue += 15;
+                        blue += cmult;
                         if (blue > 255) blue = 255;
                     }
                 }
@@ -376,7 +498,7 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == redColumn + 1)
                             {
-                                green = (rowCount * babyStep) + ((columnCount - 1) * babyStep);
+                                green = (int)((rowCount * babyStep) + ((columnCount - 1) * babyStep));
                             }
                             else
                             {
@@ -392,8 +514,9 @@ namespace DigitalNegativeCreator
                         {
                             pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
                             var tempGreen = (byte)pixel[GREEN];
-                            var mult = (255 - tempGreen) / 17;
+                            var mult = (255 - tempGreen) / (rows - centerRow - 2);
                             green = (mult * (rowCount - centerRow)) + tempGreen;
+                            if (green > 255) green = 255;
                         }
 
                         for (int y2 = 0; y2 < blockSize; y2++)
@@ -406,7 +529,7 @@ namespace DigitalNegativeCreator
                         }
                     }
                 }
-                
+
                 //  Green from blue column back to blue column - offset.
                 c = 0;
                 for (int columnCount = blueColumn; columnCount > blueColumn - columnOffset; columnCount--)
@@ -423,7 +546,7 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == blueColumn - 1)
                             {
-                                green = (rowCount * babyStep) + ((c - 1) * babyStep);
+                                green = (int)((rowCount * babyStep) + ((c - 1) * babyStep));
                             }
                             else
                             {
@@ -439,8 +562,9 @@ namespace DigitalNegativeCreator
                         {
                             pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
                             var tempGreen = (byte)pixel[GREEN];
-                            var mult = (255 - tempGreen) / 17;
+                            var mult = (255 - tempGreen) / (rows - centerRow - 2);
                             green = (mult * (rowCount - centerRow)) + tempGreen;
+                            if (green > 255) green = 255;
                         }
 
                         for (int y2 = 0; y2 < blockSize; y2++)
@@ -467,7 +591,7 @@ namespace DigitalNegativeCreator
                         {
                             if (columnCount == columns - 1)
                             {
-                                blue = (rowCount * babyStep) + (c * babyStep);
+                                blue = (int)((rowCount * babyStep) + (c * babyStep));
                             }
                             else
                             {
@@ -483,8 +607,9 @@ namespace DigitalNegativeCreator
                         {
                             pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
                             var tempBlue = (byte)pixel[BLUE];
-                            var mult = (255 - tempBlue) / 17;
+                            var mult = (255 - tempBlue) / (rows - centerRow - 2);
                             blue = (mult * (rowCount - centerRow)) + tempBlue;
+                            if (blue > 255) blue = 255;
                         }
 
                         for (int y2 = 0; y2 < blockSize; y2++)
@@ -508,8 +633,9 @@ namespace DigitalNegativeCreator
                         var iy = startY + (rowCount * cellSize);
                         pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + (startX * bytesPerPixel);
                         var tempBlue = (byte)pixel[BLUE];
-                        var mult = (255 - tempBlue) / 17;
+                        var mult = (255 - tempBlue) / (rows - centerRow - 2);
                         blue = (mult * (rowCount - centerRow)) + tempBlue;
+                        if (blue > 255) blue = 255;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
@@ -520,7 +646,7 @@ namespace DigitalNegativeCreator
                         }
                     }
                 }
-                
+
                 // blue from green over to green + offset
                 for (int columnCount = greenColumn; columnCount < greenColumn + columnOffset; columnCount++)
                 {
@@ -536,7 +662,7 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == greenColumn + 1)
                             {
-                                blue = (rowCount * babyStep) + ((columnCount - greenColumn - 1) * babyStep);
+                                blue = (int)((rowCount * babyStep) + ((columnCount - greenColumn - 1) * babyStep));
                             }
                             else
                             {
@@ -552,8 +678,9 @@ namespace DigitalNegativeCreator
                         {
                             pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
                             var tempBlue = (byte)pixel[BLUE];
-                            var mult = (255 - tempBlue) / 17;
+                            var mult = (255 - tempBlue) / (rows - centerRow - 2);
                             blue = (mult * (rowCount - centerRow)) + tempBlue;
+                            if (blue > 255) blue = 255;
                         }
 
                         for (int y2 = 0; y2 < blockSize; y2++)
@@ -566,7 +693,7 @@ namespace DigitalNegativeCreator
                         }
                     }
                 }
-
+                
                 // red from blue column to blue column + offset
                 red = (int)babyStep;
                 c = 0;
@@ -584,7 +711,7 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == blueColumn + 1)
                             {
-                                red = (rowCount * babyStep) + ((c - 1) * babyStep);
+                                red = (int)((rowCount * babyStep) + ((c - 1) * babyStep));
                             }
                             else
                             {
@@ -600,8 +727,9 @@ namespace DigitalNegativeCreator
                         {
                             pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + (columnCount * cellSize)) * bytesPerPixel);
                             var tempRed = (byte)pixel[RED];
-                            var mult = (255 - tempRed) / 17;
+                            var mult = (255 - tempRed) / (rows - centerRow - 2);
                             red = (mult * (rowCount - centerRow)) + tempRed;
+                            if (red > 255) red = 255;
                         }
 
                         for (int y2 = 0; y2 < blockSize; y2++)
@@ -632,7 +760,7 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == greenColumn - 1)
                             {
-                                red = (rowCount * babyStep) + ((c - 1) * babyStep);
+                                red = (int)((rowCount * babyStep) + ((c - 1) * babyStep));
                             }
                             else
                             {
@@ -648,8 +776,9 @@ namespace DigitalNegativeCreator
                         {
                             pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
                             var tRed = (byte)pixel[RED];
-                            var mult = (255 - tRed) / 17;
+                            var mult = (255 - tRed) / (rows - centerRow - 2);
                             red = (mult * (rowCount - centerRow)) + tRed;
+                            if (red > 255) red = 255;
                         }
 
                         for (int y2 = 0; y2 < blockSize; y2++)
@@ -674,8 +803,9 @@ namespace DigitalNegativeCreator
                         var iy = startY + (rowCount * cellSize);
                         pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + (greenColumn * cellSize)) * bytesPerPixel);
                         var tempRed = (byte)pixel[RED];
-                        var mult = (255 - tempRed) / 17;
+                        var mult = (255 - tempRed) / (rows - centerRow - 2);
                         red = (mult * (rowCount - centerRow)) + tempRed;
+                        if (red > 255) red = 255;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
@@ -696,8 +826,9 @@ namespace DigitalNegativeCreator
                         var iy = startY + (rowCount * cellSize);
                         pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + (blueColumn * cellSize)) * bytesPerPixel);
                         var tGreen = (byte)pixel[GREEN];
-                        var mult = (255 - tGreen) / 17;
+                        var mult = (255 - tGreen) / (rows - centerRow - 2);
                         green = (mult * (rowCount - centerRow)) + tGreen;
+                        if (green > 255) green = 255;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
@@ -708,8 +839,223 @@ namespace DigitalNegativeCreator
                         }
                     }
                 }
+                
+            }
+
+            bmp.UnlockBits(bmpData);
+            var text = $"Right Margin.  {rows} Rows, {columns} columns.";
+            Font font = new Font("Arial", 6, FontStyle.Regular);
+            using (Graphics g = Graphics.FromImage(bmp))
+            using (Brush brush = new SolidBrush(Color.White))
+            {
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+
+                // Measure the text (before rotation)
+                SizeF textSize = g.MeasureString(text, font);
+                float yOffset = (bmp.Height - textSize.Width) / 2f + textSize.Width;
+                // Set rotation and position
+                g.TranslateTransform(bmp.Width - 40, yOffset);
+                g.RotateTransform(-90); // rotate counter-clockwise 90 degrees
+
+                // Draw the text
+                g.DrawString(text, font, brush, 0, 0);
+
+                // Reset transform
+                g.ResetTransform();
+
             }
             return bmp;
+        }
+
+        public static void CreateTestShapeImages()
+        {
+            var strings = new List<KeyValuePair<string, int>>();
+            strings.Add(new KeyValuePair<string, int>("OnePlus", 1));
+            strings.Add(new KeyValuePair<string, int>("TwoPlus", 2));
+            strings.Add(new KeyValuePair<string, int>("ThreePlus", 3));
+            strings.Add(new KeyValuePair<string, int>("FourPlus", 4));
+            foreach (var s in strings)
+            {
+                var bmp = new Bitmap(100, 100, PixelFormat.Format32bppArgb);
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    g.Clear(Color.Black);
+                }
+                switch (s.Value)
+                {
+                    case 1:
+                        DrawPlus(bmp, new Point(50, 40), 20, 2, Color.White);
+                        break;
+                    case 2:
+                        DrawPlus(bmp, new Point(50, 40), 20, 2, Color.White);
+                        DrawPlus(bmp, new Point(50, 50), 20, 2, Color.White);
+                        break;
+                    case 3:
+                        DrawPlus(bmp, new Point(50, 40), 20, 2, Color.White);
+                        DrawPlus(bmp, new Point(50, 50), 20, 2, Color.White);
+                        DrawPlus(bmp, new Point(50, 60), 20, 2, Color.White);
+                        break;
+                    case 4:
+                        DrawPlus(bmp, new Point(50, 40), 20, 2, Color.White);
+                        DrawPlus(bmp, new Point(50, 50), 20, 2, Color.White);
+                        DrawPlus(bmp, new Point(50, 60), 20, 2, Color.White);
+                        DrawPlus(bmp, new Point(50, 70), 20, 2, Color.White);
+                        break;
+                }
+
+                bmp.Save($"{s.Key}.png", ImageFormat.Png);
+                bmp.Dispose();
+            }
+        }
+
+        public static Bitmap ConvertDesaturatedToGrayscale(Bitmap input)
+        {
+            if (input.PixelFormat != PixelFormat.Format32bppArgb)
+            {
+                throw new ArgumentException("Bitmap must be 32bpp ARGB.");
+            }
+
+            Bitmap grayBmp = new Bitmap(input.Width, input.Height, PixelFormat.Format8bppIndexed);
+
+            // Create grayscale palette
+            ColorPalette palette = grayBmp.Palette;
+            for (int i = 0; i < 256; i++)
+                palette.Entries[i] = Color.FromArgb(i, i, i);
+            grayBmp.Palette = palette;
+
+            BitmapData srcData = input.LockBits(
+            new Rectangle(0, 0, input.Width, input.Height),
+            ImageLockMode.ReadOnly,
+            PixelFormat.Format32bppArgb);
+
+            BitmapData dstData = grayBmp.LockBits(
+            new Rectangle(0, 0, grayBmp.Width, grayBmp.Height),
+            ImageLockMode.WriteOnly,
+            PixelFormat.Format8bppIndexed);
+
+            unsafe
+            {
+                for (int y = 0; y < input.Height; y++)
+                {
+                    byte* srcRow = (byte*)srcData.Scan0 + (y * srcData.Stride);
+                    byte* dstRow = (byte*)dstData.Scan0 + (y * dstData.Stride);
+
+                    for (int x = 0; x < input.Width; x++)
+                    {
+                        byte gray = srcRow[x * 4]; // Could be R, G, or B – they’re all the same
+                        dstRow[x] = gray;
+                    }
+                }
+            }
+
+            input.UnlockBits(srcData);
+            grayBmp.UnlockBits(dstData);
+
+            return grayBmp;
+        }
+
+        public static Bitmap InvertGrayscale(Bitmap input)
+        {
+            if (input.PixelFormat != PixelFormat.Format8bppIndexed)
+                throw new ArgumentException("Bitmap must be 8bpp grayscale.");
+
+            Bitmap inverted = new Bitmap(input.Width, input.Height, PixelFormat.Format8bppIndexed);
+
+            // Copy grayscale palette
+            ColorPalette palette = inverted.Palette;
+            for (int i = 0; i < 256; i++)
+                palette.Entries[i] = Color.FromArgb(i, i, i);
+            inverted.Palette = palette;
+
+            BitmapData srcData = input.LockBits(
+            new Rectangle(0, 0, input.Width, input.Height),
+            ImageLockMode.ReadOnly,
+            PixelFormat.Format8bppIndexed);
+
+            BitmapData dstData = inverted.LockBits(
+            new Rectangle(0, 0, inverted.Width, inverted.Height),
+            ImageLockMode.WriteOnly,
+            PixelFormat.Format8bppIndexed);
+
+            unsafe
+            {
+                for (int y = 0; y < input.Height; y++)
+                {
+                    byte* srcRow = (byte*)srcData.Scan0 + y * srcData.Stride;
+                    byte* dstRow = (byte*)dstData.Scan0 + y * dstData.Stride;
+
+                    for (int x = 0; x < input.Width; x++)
+                    {
+                        dstRow[x] = (byte)(255 - srcRow[x]);
+                    }
+                }
+            }
+
+            input.UnlockBits(srcData);
+            inverted.UnlockBits(dstData);
+
+            return inverted;
+        }
+
+        public static Dictionary<Point, Color> CreateAveragedColorMapForFormat24bppRgb(Bitmap bmp, int startX, int startY, int cellSize)
+        {
+            /*
+            squares start at 30, 30
+            Each square is 45 x 45
+            at 300 px per inch
+
+
+            48 rows
+            62 columns
+            */
+            Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
+            IntPtr ptr = bmpData.Scan0;
+            int stride = bmpData.Stride;
+            int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
+            Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
+            int startPoint = startX + (cellSize / 2);
+            int offset = cellSize;
+            unsafe
+            {
+                for (int columnCount = 0; columnCount < 62; columnCount++)
+                {
+                    var iy = startPoint + (columnCount * offset);
+                    for (int rowCount = 0; rowCount < 48; rowCount++)
+                    {
+                        var ix = startPoint + (rowCount * offset);
+                        var color = GetPixelNeighborsAverage(ix, iy, ptr, stride, bytesPerPixel);
+                        int gray = (int)(0.299 * color.R + 0.587 * color.G + 0.114 * color.B);
+                        var grayColor = Color.FromArgb(255, gray, gray, gray);
+                        mappedColors.Add(new Point(ix, iy), grayColor);
+                    }
+                }
+            }
+            return mappedColors;
+        }
+
+        unsafe private static Color GetPixelNeighborsAverage(int x, int y, IntPtr ptr, int stride, int bytesPerPixel)
+        {
+            //  image format should be 32bppArgb
+            int sumR = 0, sumG = 0, sumB = 0, count = 0;
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -5; dy <= 5; dy++)
+                {
+                    int nx = x + dx;    
+                    int ny = y + dy;
+                    byte* pixel = (byte*)ptr + (ny * stride) + (nx * bytesPerPixel);
+                    byte blue = pixel[BLUE];
+                    byte green = pixel[GREEN];
+                    byte red = pixel[RED];
+
+                    sumR += red;
+                    sumG += green;
+                    sumB += blue;
+                    count++;
+                }
+            }
+            return Color.FromArgb(sumR / count, sumG / count, sumB / count);
         }
 
         private static byte GammaCorrect(ushort value)
@@ -717,6 +1063,81 @@ namespace DigitalNegativeCreator
             double normalized = value / 65535.0; // Scale to [0,1]
             double corrected = Math.Pow(normalized, 1.0 / 2.2); // Gamma Correction
             return (byte)(corrected * 255); // Scale to [0,255]
+        }
+
+        private static VectorOfPoint Center(VectorOfPoint contour)
+        {
+            var moments = CvInvoke.Moments(contour);
+            double cx = moments.M10 / moments.M00;
+            double cy = moments.M01 / moments.M00;
+
+            VectorOfPoint centeredContour = new VectorOfPoint();
+
+            for (int i = 0; i < contour.Size; i++)
+            {
+                Point p = contour[i];
+                Point centeredPoint = new Point((int)(p.X - cx), (int)(p.Y - cy));
+                centeredContour.Push(new[] { centeredPoint });
+            }
+            return centeredContour;
+        }
+
+        private static (VectorOfPoint, VectorOfVectorOfPoint) GetContour(string templatePath, ChainApproxMethod method)
+        {
+            Mat matImage = CvInvoke.Imread(templatePath, ImreadModes.Grayscale);
+            Mat bin = new Mat();
+            CvInvoke.Threshold(matImage, bin, 0, 255, ThresholdType.Otsu);
+
+            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
+            CvInvoke.FindContours(bin, contours, null, RetrType.External, method);
+
+            // Assume largest contour is the given image
+            double maxArea = 0;
+            int maxIndex = 0;
+            for (int i = 0; i < contours.Size; i++)
+            {
+                double area = CvInvoke.ContourArea(contours[i]);
+                if (area > maxArea)
+                {
+                    maxArea = area;
+                    maxIndex = i;
+                }
+            }
+
+            var contour = contours[maxIndex];
+            Rectangle boundingBox = CvInvoke.BoundingRectangle(contour);
+            double scale = 100.0 / Math.Max(boundingBox.Width, boundingBox.Height);
+            Matrix<double> scaleMat = new Matrix<double>(2, 3);
+            scaleMat.SetIdentity();
+            scaleMat[0, 0] = scale;
+            scaleMat[1, 1] = scale;
+
+            VectorOfPoint scaledContour = new VectorOfPoint();
+            CvInvoke.Transform(contour, scaledContour, scaleMat);
+            return (scaledContour, contours);
+        }
+
+        public static Bitmap DrawPlus(Bitmap bmp, Point center, int size, int thickness, Color color)
+        {
+            using (Graphics g = Graphics.FromImage(bmp))
+            using (Pen pen = new Pen(color, thickness))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                // Calculate endpoints for vertical line
+                Point v1 = new Point(center.X, center.Y - size / 2);
+                Point v2 = new Point(center.X, center.Y + size / 2);
+
+                // Calculate endpoints for horizontal line
+                Point h1 = new Point(center.X - size / 2, center.Y);
+                Point h2 = new Point(center.X + size / 2, center.Y);
+
+                // Draw lines
+                g.DrawLine(pen, v1, v2); // vertical
+                g.DrawLine(pen, h1, h2); // horizontal
+            }
+
+            return bmp;
         }
     }
 }

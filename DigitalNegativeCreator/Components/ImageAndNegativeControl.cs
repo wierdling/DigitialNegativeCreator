@@ -42,7 +42,7 @@ namespace DigitalNegativeCreator.Components
             SetImageInfo(ImageFile, Filename);
         }
 
-        private void _createNegativeButton_Click(object sender, EventArgs e)
+        private void _CreateColorMappedImageButton_Click(object sender, EventArgs e)
         {
             if (MainForm.SettingsEntity.SortedGrayscaleColorMapping == null || MainForm.SettingsEntity.SortedGrayscaleColorMapping.Count == 0)
             {

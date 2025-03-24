@@ -15,6 +15,7 @@ namespace DigitalNegativeCreator
     public partial class Settings : Form
     {
         private Dictionary<Point, Color> MappedColorPoints { get; set; }
+
         public Settings()
         {
             InitializeComponent();
@@ -24,7 +25,9 @@ namespace DigitalNegativeCreator
         public Dictionary<Point, Color> LoadColorMappingForPrintedImage(string imagePath)
         {
             var bmp = new Bitmap(imagePath);
-            return CreateAveragedColorMapForFormat24bppRgb(bmp);
+            ImageUtilities.DesaturateBitmap(bmp);
+            var grayscaleBitmap = ImageUtilities.ConvertDesaturatedToGrayscale(bmp);
+            return ImageUtilities.CreateAveragedColorMapForFormat24bppRgb(bmp, 30, 30, 45);
         }
 
         private void Settings_Shown(object sender, EventArgs e)
@@ -34,10 +37,10 @@ namespace DigitalNegativeCreator
 
         private void CreateColorMappedImage(Dictionary<Point, Color> mappedColors)
         {
-            int startPoint = 78 + 35;
-            int offset = 74;
+            int startPoint = 52;
+            int offset = 22;
             int mult = 20;
-            using Bitmap cm = new Bitmap(36 * mult, 21 * mult, PixelFormat.Format32bppArgb);
+            using Bitmap cm = new Bitmap(49 * mult, 63 * mult, PixelFormat.Format32bppArgb);
             var rect2 = new Rectangle(0, 0, cm.Width, cm.Height);
             var bmpData2 = cm.LockBits(rect2, ImageLockMode.ReadOnly, cm.PixelFormat);
             IntPtr ptr2 = bmpData2.Scan0;
@@ -45,10 +48,10 @@ namespace DigitalNegativeCreator
             int bytesPerPixel2 = Image.GetPixelFormatSize(bmpData2.PixelFormat) / 8;
             unsafe
             {
-                for (int y = 0; y < 21; y++)
+                for (int y = 0; y < 48; y++)
                 {
                     var iy = startPoint + (y * offset);
-                    for (int x = 0; x < 36; x++)
+                    for (int x = 0; x < 62; x++)
                     {
                         var ix = startPoint + (x * offset);
                         var p = new Point(ix, iy);
@@ -75,59 +78,7 @@ namespace DigitalNegativeCreator
             _testImagePictureBox.Image = jpg;
         }
 
-        private Dictionary<Point, Color> CreateAveragedColorMapForFormat24bppRgb(Bitmap bmp)
-        {
-            Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
-            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
-            int stride = bmpData.Stride;
-            int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
-            Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
-            int startPoint = 78 + 35;
-            int offset = 74;
-            unsafe
-            {
-                for (int y = 0; y < 21; y++)
-                {
-                    var iy = startPoint + (y * offset);
-                    for (int x = 0; x < 36; x++)
-                    {
-                        var ix = startPoint + (x * offset);
-                        var color = GetPixelNeighborsAverage(ix, iy, ptr, stride, bytesPerPixel);
-                        int gray = (int)(0.299 * color.R + 0.587 * color.G + 0.114 * color.B);
-                        var grayColor = Color.FromArgb(255, gray, gray, gray);
-                        mappedColors.Add(new Point(ix, iy), grayColor);
-
-                    }
-                }
-            }
-            return mappedColors;
-        }
-
-        unsafe private Color GetPixelNeighborsAverage(int x, int y, IntPtr ptr, int stride, int bytesPerPixel)
-        {
-            int sumR = 0, sumG = 0, sumB = 0, count = 0;
-            for (int dx = -1; dx <= 1; dx++)
-            {
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    int nx = x + dx;
-                    int ny = y + dy;
-                    byte* pixel = (byte*)ptr + (ny * stride) + (nx * bytesPerPixel);
-                    byte blue = pixel[0];
-                    byte green = pixel[1];
-                    byte red = pixel[2];
-
-                    sumR += red;
-                    sumG += green;
-                    sumB += blue;
-                    count++;
-                }
-            }
-            return Color.FromArgb(sumR / count, sumG / count, sumB / count);
-        }
-
-        private void button1_Click(object sender, EventArgs e)
+        private void CreateColorMappedImageButton_Click(object sender, EventArgs e)
         {
             var ofd = new OpenFileDialog();
             if (DialogResult.OK != ofd.ShowDialog())
@@ -171,6 +122,7 @@ namespace DigitalNegativeCreator
         }
 
         public static string ColorToHex(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+
         public static Color ColorFromHex(string hex)
         {
             var rString = hex.Substring(1, 2);
@@ -234,7 +186,6 @@ namespace DigitalNegativeCreator
         {
             var testImage = ImageUtilities.CreateTestImage();
             testImage.Save("TestImageToPrint.png", ImageFormat.Png);
-
         }
     }
 }
