@@ -5,6 +5,7 @@ using Emgu.CV;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using DigitalNegativeCreator.HelperClasses;
+using System.Drawing;
 
 namespace DigitalNegativeCreator.Utilities
 {
@@ -172,7 +173,7 @@ namespace DigitalNegativeCreator.Utilities
             //    CvInvoke.Imwrite("testDetectedImage.png", testImage);
 
             //if (ulX <= 0 || urX <= 0 || llX <= 0 || lrX <= 0) throw new ArgumentException("Could not find starting point for calculations."); // todo: show an error or something.
-            var greyscaleMappedColors = CreateAveragedColorMapForFormat24bppRgb(scannedImage, OFFSET, OFFSET, CELLSIZE);
+            var greyscaleMappedColors = CreateAveragedColorMapForFormat24bppRgb(scannedImage, OFFSET, OFFSET, OFFSET, OFFSET, 0f, CELLSIZE, true);
             SortedDictionary<Color, Point> sortedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
             foreach (var kvp in greyscaleMappedColors)
             {
@@ -999,8 +1000,13 @@ namespace DigitalNegativeCreator.Utilities
             return inverted;
         }
 
-        public static Dictionary<Point, Color> CreateAveragedColorMapForFormat24bppRgb(Bitmap bmp, int startX, int startY, int cellSize)
+        public static Dictionary<Point, Color> CreateAveragedColorMapForFormat24bppRgb(Bitmap bmp, float startX, float startY,
+            float xOffset, float yOffset, float rotation, int cellSize, bool isTestMode)
         {
+            if (rotation != 0)
+            {
+                bmp = RotateImage(bmp, rotation);
+            }
             /*
             squares start at 30, 30
             Each square is 45 x 45
@@ -1010,22 +1016,58 @@ namespace DigitalNegativeCreator.Utilities
             48 rows
             62 columns
             */
+
+
+            using (Graphics g = Graphics.FromImage(bmp))
+            using (Pen pen = new Pen(Color.Red, 1))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                for (int rowCount = 0; rowCount < ROWS; rowCount++)
+                {
+                    var ix = (int)(startY + rowCount * yOffset);
+                    for (int columnCount = 0; columnCount < COLUMNS; columnCount++)
+                    {
+                        var iy = (int)(startX + columnCount * xOffset);
+
+                        Point v1 = new Point(iy - HALFCELLSIZE, ix - HALFCELLSIZE);
+                        Point v2 = new Point(iy - HALFCELLSIZE, ix + HALFCELLSIZE);
+                        Point v3 = new Point(iy + HALFCELLSIZE, ix - HALFCELLSIZE);
+                        Point v4 = new Point(iy + HALFCELLSIZE, ix + HALFCELLSIZE);
+
+                        // Draw lines
+                        g.DrawLine(pen, v1, v2);
+                        g.DrawLine(pen, v1, v3);
+                        g.DrawLine(pen, v2, v4);
+                        g.DrawLine(pen, v3, v4);
+                    }
+                }
+            }
+            bmp.Save("t1.png", ImageFormat.Png);
+            ImageDisplayForm frm = new ImageDisplayForm(bmp);
+            frm.Show();
+
+            //  If we are not in test mode we need to create the mapped colors.
+            if (isTestMode)
+            {
+                return new Dictionary<Point, Color>();//mappedColors;
+            }
+
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
             BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
             nint ptr = bmpData.Scan0;
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
-            int startPoint = startX + HALFCELLSIZE;
-            int offset = cellSize;
+            //int startPoint = startX + HALFCELLSIZE;
+            //int offset = cellSize; // cell size + border
             unsafe
             {
                 for (int columnCount = 0; columnCount < COLUMNS; columnCount++)
                 {
-                    var iy = startPoint + columnCount * offset;
+                    var iy = (int)(startY + columnCount * yOffset);
                     for (int rowCount = 0; rowCount < ROWS; rowCount++)
                     {
-                        var ix = startPoint + rowCount * offset;
+                        var ix = (int)(startX + rowCount * xOffset);
                         var color = GetPixelNeighborsAverage(ix, iy, ptr, stride, bytesPerPixel);
                         int gray = (int)(0.299 * color.R + 0.587 * color.G + 0.114 * color.B);
                         var grayColor = Color.FromArgb(255, gray, gray, gray);
@@ -1033,6 +1075,12 @@ namespace DigitalNegativeCreator.Utilities
                     }
                 }
             }
+
+            bmp.UnlockBits(bmpData);
+            bmp.Save("testRead.png", ImageFormat.Png);
+            bmp.Save("t1.png", ImageFormat.Png);
+            ImageDisplayForm frm2 = new ImageDisplayForm(bmp);
+            frm2.Show();
             return mappedColors;
         }
 
@@ -1042,7 +1090,7 @@ namespace DigitalNegativeCreator.Utilities
             int sumR = 0, sumG = 0, sumB = 0, count = 0;
             for (int dx = -1; dx <= 1; dx++)
             {
-                for (int dy = -1; dy <= 1; dy++)
+                for (int dy = -2; dy <= 2; dy++)
                 {
                     int nx = x + dx;
                     int ny = y + dy;
@@ -1050,6 +1098,11 @@ namespace DigitalNegativeCreator.Utilities
                     byte blue = pixel[BLUE];
                     byte green = pixel[GREEN];
                     byte red = pixel[RED];
+
+                    pixel[RED] = 255;
+                    pixel[GREEN] = 0;
+                    pixel[BLUE] = 0;
+                    pixel[ALPHA] = 255;
 
                     sumR += red;
                     sumG += green;
@@ -1140,6 +1193,37 @@ namespace DigitalNegativeCreator.Utilities
             }
 
             return bmp;
+        }
+
+        public static Bitmap RotateImage(Bitmap bmp, float angle)
+        {
+            // Create a new empty bitmap to hold rotated image
+            float radAngle = angle * (float)Math.PI / 180f;
+            double cos = Math.Abs(Math.Cos(radAngle));
+            double sin = Math.Abs(Math.Sin(radAngle));
+
+            int newWidth = (int)(bmp.Width * cos + bmp.Height * sin);
+            int newHeight = (int)(bmp.Width * sin + bmp.Height * cos);
+
+            Bitmap rotatedBmp = new Bitmap(newWidth, newHeight);
+            rotatedBmp.SetResolution(bmp.HorizontalResolution, bmp.VerticalResolution);
+
+            using (Graphics g = Graphics.FromImage(rotatedBmp))
+            {
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                g.SmoothingMode = SmoothingMode.HighQuality;
+
+                // Set the rotation point to the center of the image
+                g.TranslateTransform(newWidth / 2f, newHeight / 2f);
+                g.RotateTransform(angle);
+                g.TranslateTransform(-bmp.Width / 2f, -bmp.Height / 2f);
+
+                // Draw the original bitmap onto the graphics of the new one
+                g.DrawImage(bmp, 0, 0);
+            }
+
+            return rotatedBmp;
         }
     }
 }

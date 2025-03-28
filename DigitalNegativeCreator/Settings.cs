@@ -1,4 +1,5 @@
 ﻿using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using DigitalNegativeCreator.HelperClasses;
 using DigitalNegativeCreator.Utilities;
@@ -8,6 +9,7 @@ namespace DigitalNegativeCreator
     public partial class Settings : Form
     {
         private Dictionary<Point, Color> MappedColorPoints { get; set; }
+        private string GrayscaleFileName { get; set; }
 
         public Settings()
         {
@@ -17,10 +19,18 @@ namespace DigitalNegativeCreator
 
         public Dictionary<Point, Color> LoadColorMappingForPrintedImage(string imagePath)
         {
+            var isTestMode = _testModeCheckBox.Checked;
+            var startX = (float)_startX.Value;
+            var startY = (float)_startY.Value;
+            var xOffset = (float)_xOffset.Value;
+            var yOffset = (float)_yOffset.Value;
+            var rotation = (float)_rotation.Value;
+            int cellSize = (int)_cellSize.Value;
+
             var bmp = new Bitmap(imagePath);
             ImageUtilities.DesaturateBitmap(bmp);
             var grayscaleBitmap = ImageUtilities.ConvertDesaturatedToGrayscale(bmp);
-            return ImageUtilities.CreateAveragedColorMapForFormat24bppRgb(bmp, ImageUtilities.OFFSET, ImageUtilities.OFFSET, ImageUtilities.CELLSIZE);
+            return ImageUtilities.CreateAveragedColorMapForFormat24bppRgb(bmp, startX, startY, xOffset, yOffset, rotation, cellSize, isTestMode);
         }
 
         private void Settings_Shown(object sender, EventArgs e)
@@ -75,12 +85,19 @@ namespace DigitalNegativeCreator
         {
             //  Load a scanned image that was printed using the test imge to print.
             //  The printed image needs to be fully processed (toned, fixed, etc).
-            var ofd = new OpenFileDialog();
-            if (DialogResult.OK != ofd.ShowDialog())
+            
+            if (string.IsNullOrEmpty(GrayscaleFileName))
             {
-                return;
+                var ofd = new OpenFileDialog();
+                if (DialogResult.OK != ofd.ShowDialog())
+                {
+                    return;
+                }
+                GrayscaleFileName = ofd.FileName;
             }
-            Dictionary<Point, Color> greyscaleMappedColors = LoadColorMappingForPrintedImage(ofd.FileName);
+            Dictionary<Point, Color> greyscaleMappedColors = LoadColorMappingForPrintedImage(GrayscaleFileName);
+            if (_testModeCheckBox.Checked) return;
+
             //CreateColorMappedImage(greyscaleMappedColors);
             //MappedColorPoints = ImageUtilities.CreateColorMapping("TestImageToPrint.png");
             SortedDictionary<Color, Point> sortedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
