@@ -31,12 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="EDN_HSB2_inverted.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="EDN_HSB2_inverted.tif">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Folder Include="ImageResources\" />
   </ItemGroup>
 
 </Project>

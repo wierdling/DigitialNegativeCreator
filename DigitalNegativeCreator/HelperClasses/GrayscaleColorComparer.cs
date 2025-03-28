@@ -1,4 +1,4 @@
-﻿namespace DigitalNegativeCreator
+﻿namespace DigitalNegativeCreator.HelperClasses
 {
     internal class GrayscaleColorComparer : IComparer<Color>
     {

@@ -28,11 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Settings));
             _colorMapPanel = new Panel();
             _testImagePictureBox = new PictureBox();
-            button1 = new Button();
+            _createGreyscaleColorMapping = new Button();
             _normalizeColorMappingButton = new Button();
             _createTestImageButton = new Button();
+            toolTip1 = new ToolTip(components);
             _colorMapPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)_testImagePictureBox).BeginInit();
             SuspendLayout();
@@ -55,15 +58,16 @@
             _testImagePictureBox.TabIndex = 0;
             _testImagePictureBox.TabStop = false;
             // 
-            // button1
+            // _createGreyscaleColorMapping
             // 
-            button1.Location = new Point(12, 12);
-            button1.Name = "button1";
-            button1.Size = new Size(153, 23);
-            button1.TabIndex = 1;
-            button1.Text = "Create Color Mapping";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += CreateColorMappedImageButton_Click;
+            _createGreyscaleColorMapping.Location = new Point(12, 12);
+            _createGreyscaleColorMapping.Name = "_createGreyscaleColorMapping";
+            _createGreyscaleColorMapping.Size = new Size(153, 23);
+            _createGreyscaleColorMapping.TabIndex = 1;
+            _createGreyscaleColorMapping.Text = "Create Grayscale Mapping";
+            toolTip1.SetToolTip(_createGreyscaleColorMapping, "Load the printed image (that has gone through the same process you want your regular images to go through) that was scanned.  \r\nThe image needs to be scanned at 300 dpi and be 8.5 x 11 inches in size.");
+            _createGreyscaleColorMapping.UseVisualStyleBackColor = true;
+            _createGreyscaleColorMapping.Click += CreateGrayScaleMappedImageButton_Click;
             // 
             // _normalizeColorMappingButton
             // 
@@ -71,7 +75,8 @@
             _normalizeColorMappingButton.Name = "_normalizeColorMappingButton";
             _normalizeColorMappingButton.Size = new Size(153, 23);
             _normalizeColorMappingButton.TabIndex = 2;
-            _normalizeColorMappingButton.Text = "Normalize Color Mapping";
+            _normalizeColorMappingButton.Text = "Normalize Grayscale Mapping";
+            toolTip1.SetToolTip(_normalizeColorMappingButton, "This command will fill in the gaps in the tones by selecting the lower tone.  Keep running the command until it is finished. ");
             _normalizeColorMappingButton.UseVisualStyleBackColor = true;
             _normalizeColorMappingButton.Click += _normalizeColorMappingButton_Click;
             // 
@@ -81,7 +86,8 @@
             _createTestImageButton.Name = "_createTestImageButton";
             _createTestImageButton.Size = new Size(153, 23);
             _createTestImageButton.TabIndex = 3;
-            _createTestImageButton.Text = "Create Test Image";
+            _createTestImageButton.Text = "Create Color Image";
+            toolTip1.SetToolTip(_createTestImageButton, resources.GetString("_createTestImageButton.ToolTip"));
             _createTestImageButton.UseVisualStyleBackColor = true;
             _createTestImageButton.Click += _createTestImageButton_Click;
             // 
@@ -92,7 +98,7 @@
             ClientSize = new Size(800, 450);
             Controls.Add(_createTestImageButton);
             Controls.Add(_normalizeColorMappingButton);
-            Controls.Add(button1);
+            Controls.Add(_createGreyscaleColorMapping);
             Controls.Add(_colorMapPanel);
             Name = "Settings";
             Text = "Settings";
@@ -106,8 +112,9 @@
 
         private Panel _colorMapPanel;
         private PictureBox _testImagePictureBox;
-        private Button button1;
+        private Button _createGreyscaleColorMapping;
         private Button _normalizeColorMappingButton;
         private Button _createTestImageButton;
+        private ToolTip toolTip1;
     }
 }

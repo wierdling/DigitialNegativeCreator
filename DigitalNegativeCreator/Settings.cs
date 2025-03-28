@@ -1,5 +1,7 @@
 ﻿using System.Drawing.Imaging;
 using System.Text.Json;
+using DigitalNegativeCreator.HelperClasses;
+using DigitalNegativeCreator.Utilities;
 
 namespace DigitalNegativeCreator
 {
@@ -69,7 +71,7 @@ namespace DigitalNegativeCreator
             _testImagePictureBox.Image = jpg;
         }
 
-        private void CreateColorMappedImageButton_Click(object sender, EventArgs e)
+        private void CreateGrayScaleMappedImageButton_Click(object sender, EventArgs e)
         {
             //  Load a scanned image that was printed using the test imge to print.
             //  The printed image needs to be fully processed (toned, fixed, etc).

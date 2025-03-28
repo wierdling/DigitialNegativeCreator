@@ -4,8 +4,9 @@ using Emgu.CV.Util;
 using Emgu.CV;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using DigitalNegativeCreator.HelperClasses;
 
-namespace DigitalNegativeCreator
+namespace DigitalNegativeCreator.Utilities
 {
     public static class ImageUtilities
     {
@@ -27,21 +28,18 @@ namespace DigitalNegativeCreator
 
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
             BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
+            nint ptr = bmpData.Scan0;
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
-            var regularDict = new Dictionary<Color, Point>();
-            foreach (var kvp in settingsEntity.SortedGrayscaleColorMapping)
-            {
-                regularDict.Add(kvp.Key, kvp.Value);
-            }
+            var regularDict =  settingsEntity.SortedGrayscaleColorMapping.ToDictionary<Color, Point>();
+
             unsafe
             {
                 for (int y = 0; y < bmp.Height; y++)
                 {
                     for (int x = 0; x < bmp.Width; x++)
                     {
-                        byte* pixel = (byte*)ptr + (y * stride) + (x * bytesPerPixel);
+                        byte* pixel = (byte*)ptr + y * stride + x * bytesPerPixel;
                         byte blue = (byte)(255 - pixel[0]); // image is desaturated now, so ok to just use first color component from pixel (inverted).
                         var color = regularDict.Keys.FirstOrDefault(x => x.B == blue);
                         if (!color.IsEmpty)
@@ -173,18 +171,18 @@ namespace DigitalNegativeCreator
             //    // Save the result for visual testing.
             //    CvInvoke.Imwrite("testDetectedImage.png", testImage);
 
-              //if (ulX <= 0 || urX <= 0 || llX <= 0 || lrX <= 0) throw new ArgumentException("Could not find starting point for calculations."); // todo: show an error or something.
-                var greyscaleMappedColors =  CreateAveragedColorMapForFormat24bppRgb(scannedImage, OFFSET, OFFSET, CELLSIZE);
-                SortedDictionary<Color, Point> sortedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
-                foreach (var kvp in greyscaleMappedColors)
+            //if (ulX <= 0 || urX <= 0 || llX <= 0 || lrX <= 0) throw new ArgumentException("Could not find starting point for calculations."); // todo: show an error or something.
+            var greyscaleMappedColors = CreateAveragedColorMapForFormat24bppRgb(scannedImage, OFFSET, OFFSET, CELLSIZE);
+            SortedDictionary<Color, Point> sortedColors = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
+            foreach (var kvp in greyscaleMappedColors)
+            {
+                Color foundColor = sortedColors.Keys.FirstOrDefault(x => x.R == kvp.Value.R && x.G == kvp.Value.G && x.B == kvp.Value.B);
+                if (foundColor.R == 0 && foundColor.G == 0 && foundColor.B == 0 && foundColor.A == 0)
                 {
-                    Color foundColor = sortedColors.Keys.FirstOrDefault(x => x.R == kvp.Value.R && x.G == kvp.Value.G && x.B == kvp.Value.B);
-                    if (foundColor.R == 0 && foundColor.G == 0 && foundColor.B == 0 && foundColor.A == 0)
-                    {
-                        sortedColors.Add(kvp.Value, kvp.Key);
-                    }
+                    sortedColors.Add(kvp.Value, kvp.Key);
                 }
-                return sortedColors;
+            }
+            return sortedColors;
             //}
         }
 
@@ -215,7 +213,7 @@ namespace DigitalNegativeCreator
             BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             int stride = bmpData.Stride;
-            IntPtr scan0 = bmpData.Scan0;
+            nint scan0 = bmpData.Scan0;
 
             unsafe
             {
@@ -225,15 +223,15 @@ namespace DigitalNegativeCreator
                 {
                     for (int x = 0; x < bmp.Width; x++)
                     {
-                        byte* pixel = ptr + (y * stride) + (x * bytesPerPixel);
+                        byte* pixel = ptr + y * stride + x * bytesPerPixel;
 
                         // Compute grayscale value using luminance formula RGB
                         byte gray = (byte)(0.299 * pixel[2] + 0.587 * pixel[1] + 0.114 * pixel[0]);
 
                         // Assign grayscale value (preserving alpha)
-                        pixel[0] = gray; // Red
-                        pixel[1] = gray; // Green
-                        pixel[2] = gray; // Blue
+                        pixel[RED] = gray; // Red
+                        pixel[GREEN] = gray; // Green
+                        pixel[BLUE] = gray; // Blue
                     }
                 }
             }
@@ -245,7 +243,7 @@ namespace DigitalNegativeCreator
         {
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
             BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
+            nint ptr = bmpData.Scan0;
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
@@ -255,11 +253,11 @@ namespace DigitalNegativeCreator
             {
                 for (int y = 0; y < ROWS; y++)
                 {
-                    var iy = startPoint + (y * offset);
+                    var iy = startPoint + y * offset;
                     for (int x = 0; x < COLUMNS; x++)
                     {
-                        var ix = startPoint + (x * offset);
-                        byte* pixel = (byte*)ptr + (iy * stride) + (ix * bytesPerPixel);
+                        var ix = startPoint + x * offset;
+                        byte* pixel = (byte*)ptr + iy * stride + ix * bytesPerPixel;
 
                         ushort blue = (ushort)(pixel[1] << 8 | pixel[0]);   // R = (high << 8) | low
                         ushort green = (ushort)(pixel[3] << 8 | pixel[2]); // G = (high << 8) | low
@@ -276,7 +274,7 @@ namespace DigitalNegativeCreator
         {
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
             BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
+            nint ptr = bmpData.Scan0;
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
@@ -286,11 +284,11 @@ namespace DigitalNegativeCreator
             {
                 for (int y = 0; y < ROWS; y++)
                 {
-                    var iy = startPoint + (y * offset);
+                    var iy = startPoint + y * offset;
                     for (int x = 0; x < COLUMNS; x++)
                     {
-                        var ix = startPoint + (x * offset);
-                        byte* pixel = (byte*)ptr + (iy * stride) + (ix * bytesPerPixel);
+                        var ix = startPoint + x * offset;
+                        byte* pixel = (byte*)ptr + iy * stride + ix * bytesPerPixel;
 
                         byte blue = pixel[0];
                         byte green = pixel[1];
@@ -311,10 +309,10 @@ namespace DigitalNegativeCreator
             switch (bmp.PixelFormat)
             {
                 case PixelFormat.Format48bppRgb:
-                    mappedColors = ImageUtilities.CreateColorMapForFormat48bppRgb(bmp);
+                    mappedColors = CreateColorMapForFormat48bppRgb(bmp);
                     break;
                 default:
-                    mappedColors = ImageUtilities.CreateColorMapForFormat24bppRgb(bmp);
+                    mappedColors = CreateColorMapForFormat24bppRgb(bmp);
                     break;
             }
             return mappedColors;
@@ -344,14 +342,14 @@ namespace DigitalNegativeCreator
             bmp.SetResolution(dpi, dpi);
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
             BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
+            nint ptr = bmpData.Scan0;
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             var t = bmp.PixelFormat;
 
             int startY = 30;
             int startX = 30;
-            int cellSize = (int)(rowHeight);
+            int cellSize = (int)rowHeight;
             int red = 0;
             int blue = 0;
             int green = 0;
@@ -376,27 +374,27 @@ namespace DigitalNegativeCreator
                 {
                     for (int r1 = 0; r1 < bmp.Height; r1++)
                     {
-                        pixel = (byte*)ptr + (r1 * stride) + (c1 * bytesPerPixel);
-                        pixel[GREEN] = (byte)0;
-                        pixel[BLUE] = (byte)0;
-                        pixel[RED] = (byte)0;
-                        pixel[ALPHA] = (byte)255;
+                        pixel = (byte*)ptr + r1 * stride + c1 * bytesPerPixel;
+                        pixel[GREEN] = 0;
+                        pixel[BLUE] = 0;
+                        pixel[RED] = 0;
+                        pixel[ALPHA] = 255;
                     }
                 }
 
                 //  First row, 0 for everything.
                 for (int columnCount = 0; columnCount < columns; columnCount++)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     var iy = startY; // 1 == rowcount
                     for (int y2 = 0; y2 < blockSize; y2++)
                     {
                         for (int x2 = 0; x2 < blockSize; x2++)
                         {
-                            pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
-                            pixel[GREEN] = (byte)0;
-                            pixel[BLUE] = (byte)0;
-                            pixel[RED] = (byte)0;
+                            pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
+                            pixel[GREEN] = 0;
+                            pixel[BLUE] = 0;
+                            pixel[RED] = 0;
                         }
                     }
                 }
@@ -407,15 +405,15 @@ namespace DigitalNegativeCreator
                 for (int columnCount = 0; columnCount < columnOffset; columnCount++)
                 {
                     red = 0;
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 0; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[RED] = (byte)red;
                             }
                         }
@@ -427,15 +425,15 @@ namespace DigitalNegativeCreator
                 for (int columnCount = columns - columnOffset + 1; columnCount < columns; columnCount++)
                 {
                     red = 0;
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 0; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[RED] = (byte)red;
                             }
                         }
@@ -448,15 +446,15 @@ namespace DigitalNegativeCreator
                 for (int columnCount = greenColumn - columnOffset + 1; columnCount < greenColumn + columnOffset; columnCount++)
                 {
                     green = 0;
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 0; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[GREEN] = (byte)green;
                             }
                         }
@@ -469,15 +467,15 @@ namespace DigitalNegativeCreator
                 for (int columnCount = blueColumn - columnOffset + 1; columnCount < blueColumn + columnOffset; columnCount++)
                 {
                     blue = 0;
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 0; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[BLUE] = (byte)blue;
                             }
                         }
@@ -485,15 +483,15 @@ namespace DigitalNegativeCreator
                         if (blue > 255) blue = 255;
                     }
                 }
-                
+
                 //  Green from column red add baby step for each row.
-                green = (int)babyStep;
+                green = babyStep;
                 for (int columnCount = redColumn; columnCount < redColumn + columnOffset; columnCount++)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 1; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         if (rowCount <= centerRow)
                         {
                             if (currentColumn == redColumn)
@@ -502,12 +500,12 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == redColumn + 1)
                             {
-                                green = (int)((rowCount * babyStep) + ((columnCount - 1) * babyStep));
+                                green = rowCount * babyStep + (columnCount - 1) * babyStep;
                             }
                             else
                             {
-                                pixel = (byte*)ptr + (iy * stride) + ((startX + ((redColumn + 1) * cellSize)) * bytesPerPixel);
-                                var tGreen = (byte)pixel[GREEN];
+                                pixel = (byte*)ptr + iy * stride + (startX + (redColumn + 1) * cellSize) * bytesPerPixel;
+                                var tGreen = pixel[GREEN];
                                 green = tGreen * columnCount;
 
                             }
@@ -516,10 +514,10 @@ namespace DigitalNegativeCreator
                         }
                         else
                         {
-                            pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
-                            var tempGreen = (byte)pixel[GREEN];
+                            pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + (startX + columnCount * cellSize) * bytesPerPixel;
+                            var tempGreen = pixel[GREEN];
                             var mult = (255 - tempGreen) / (rows - centerRow - 2);
-                            green = (mult * (rowCount - centerRow)) + tempGreen;
+                            green = mult * (rowCount - centerRow) + tempGreen;
                             if (green > 255) green = 255;
                         }
 
@@ -527,7 +525,7 @@ namespace DigitalNegativeCreator
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[GREEN] = (byte)green;
                             }
                         }
@@ -538,10 +536,10 @@ namespace DigitalNegativeCreator
                 c = 0;
                 for (int columnCount = blueColumn; columnCount > blueColumn - columnOffset; columnCount--)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 1; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         if (rowCount <= centerRow)
                         {
                             if (currentColumn == blueColumn)
@@ -550,12 +548,12 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == blueColumn - 1)
                             {
-                                green = (int)((rowCount * babyStep) + ((c - 1) * babyStep));
+                                green = rowCount * babyStep + (c - 1) * babyStep;
                             }
                             else
                             {
-                                pixel = (byte*)ptr + (iy * stride) + ((startX + ((blueColumn - 1) * cellSize)) * bytesPerPixel);
-                                var tGreen = (byte)pixel[GREEN];
+                                pixel = (byte*)ptr + iy * stride + (startX + (blueColumn - 1) * cellSize) * bytesPerPixel;
+                                var tGreen = pixel[GREEN];
                                 green = tGreen * c;
 
                             }
@@ -564,10 +562,10 @@ namespace DigitalNegativeCreator
                         }
                         else
                         {
-                            pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
-                            var tempGreen = (byte)pixel[GREEN];
+                            pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + (startX + columnCount * cellSize) * bytesPerPixel;
+                            var tempGreen = pixel[GREEN];
                             var mult = (255 - tempGreen) / (rows - centerRow - 2);
-                            green = (mult * (rowCount - centerRow)) + tempGreen;
+                            green = mult * (rowCount - centerRow) + tempGreen;
                             if (green > 255) green = 255;
                         }
 
@@ -575,32 +573,32 @@ namespace DigitalNegativeCreator
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[GREEN] = (byte)green;
                             }
                         }
                     }
                     c++;
                 }
-                
+
                 //  blue from last column back to last column - offset.
                 c = 0;
                 for (int columnCount = columns - 1; columnCount > columns - columnOffset - 1; columnCount--)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 1; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         if (rowCount <= centerRow)
                         {
                             if (columnCount == columns - 1)
                             {
-                                blue = (int)((rowCount * babyStep) + (c * babyStep));
+                                blue = rowCount * babyStep + c * babyStep;
                             }
                             else
                             {
-                                pixel = (byte*)ptr + (iy * stride) + ((startX + ((columns - 1) * cellSize)) * bytesPerPixel);
-                                var tBlue = (byte)pixel[BLUE];
+                                pixel = (byte*)ptr + iy * stride + (startX + (columns - 1) * cellSize) * bytesPerPixel;
+                                var tBlue = pixel[BLUE];
                                 blue = tBlue * (c + 1);
 
                             }
@@ -609,10 +607,10 @@ namespace DigitalNegativeCreator
                         }
                         else
                         {
-                            pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
-                            var tempBlue = (byte)pixel[BLUE];
+                            pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + (startX + columnCount * cellSize) * bytesPerPixel;
+                            var tempBlue = pixel[BLUE];
                             var mult = (255 - tempBlue) / (rows - centerRow - 2);
-                            blue = (mult * (rowCount - centerRow)) + tempBlue;
+                            blue = mult * (rowCount - centerRow) + tempBlue;
                             if (blue > 255) blue = 255;
                         }
 
@@ -620,7 +618,7 @@ namespace DigitalNegativeCreator
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[BLUE] = (byte)blue;
                             }
                         }
@@ -631,20 +629,20 @@ namespace DigitalNegativeCreator
                 //  blue for first column to < greenColumn.
                 for (int columnCount = 0; columnCount < greenColumn; columnCount++)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = centerRow; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
-                        pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + (startX * bytesPerPixel);
-                        var tempBlue = (byte)pixel[BLUE];
+                        var iy = startY + rowCount * cellSize;
+                        pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + startX * bytesPerPixel;
+                        var tempBlue = pixel[BLUE];
                         var mult = (255 - tempBlue) / (rows - centerRow - 2);
-                        blue = (mult * (rowCount - centerRow)) + tempBlue;
+                        blue = mult * (rowCount - centerRow) + tempBlue;
                         if (blue > 255) blue = 255;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[BLUE] = (byte)blue;
                             }
                         }
@@ -654,10 +652,10 @@ namespace DigitalNegativeCreator
                 // blue from green over to green + offset
                 for (int columnCount = greenColumn; columnCount < greenColumn + columnOffset; columnCount++)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 1; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         if (rowCount <= centerRow)
                         {
                             if (columnCount == greenColumn)
@@ -666,13 +664,13 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == greenColumn + 1)
                             {
-                                blue = (int)((rowCount * babyStep) + ((columnCount - greenColumn - 1) * babyStep));
+                                blue = rowCount * babyStep + (columnCount - greenColumn - 1) * babyStep;
                             }
                             else
                             {
-                                pixel = (byte*)ptr + (iy * stride) + ((startX + ((greenColumn + 1) * cellSize)) * bytesPerPixel);
-                                var tBlue = (byte)pixel[BLUE];
-                                blue = tBlue * ((columnCount - greenColumn) + 1);
+                                pixel = (byte*)ptr + iy * stride + (startX + (greenColumn + 1) * cellSize) * bytesPerPixel;
+                                var tBlue = pixel[BLUE];
+                                blue = tBlue * (columnCount - greenColumn + 1);
 
                             }
                             if (blue > 255) blue = 255;
@@ -680,10 +678,10 @@ namespace DigitalNegativeCreator
                         }
                         else
                         {
-                            pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
-                            var tempBlue = (byte)pixel[BLUE];
+                            pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + (startX + columnCount * cellSize) * bytesPerPixel;
+                            var tempBlue = pixel[BLUE];
                             var mult = (255 - tempBlue) / (rows - centerRow - 2);
-                            blue = (mult * (rowCount - centerRow)) + tempBlue;
+                            blue = mult * (rowCount - centerRow) + tempBlue;
                             if (blue > 255) blue = 255;
                         }
 
@@ -691,22 +689,22 @@ namespace DigitalNegativeCreator
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[BLUE] = (byte)blue;
                             }
                         }
                     }
                 }
-                
+
                 // red from blue column to blue column + offset
-                red = (int)babyStep;
+                red = babyStep;
                 c = 0;
                 for (int columnCount = blueColumn; columnCount < blueColumn + columnOffset; columnCount++)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 1; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         if (rowCount <= centerRow)
                         {
                             if (columnCount == blueColumn)
@@ -715,12 +713,12 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == blueColumn + 1)
                             {
-                                red = (int)((rowCount * babyStep) + ((c - 1) * babyStep));
+                                red = rowCount * babyStep + (c - 1) * babyStep;
                             }
                             else
                             {
-                                pixel = (byte*)ptr + (iy * stride) + ((startX + ((blueColumn + 1) * cellSize)) * bytesPerPixel);
-                                var tRed = (byte)pixel[RED];
+                                pixel = (byte*)ptr + iy * stride + (startX + (blueColumn + 1) * cellSize) * bytesPerPixel;
+                                var tRed = pixel[RED];
                                 red = tRed * (c - 1);
 
                             }
@@ -729,10 +727,10 @@ namespace DigitalNegativeCreator
                         }
                         else
                         {
-                            pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + (columnCount * cellSize)) * bytesPerPixel);
-                            var tempRed = (byte)pixel[RED];
+                            pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + (startX + columnCount * cellSize) * bytesPerPixel;
+                            var tempRed = pixel[RED];
                             var mult = (255 - tempRed) / (rows - centerRow - 2);
-                            red = (mult * (rowCount - centerRow)) + tempRed;
+                            red = mult * (rowCount - centerRow) + tempRed;
                             if (red > 255) red = 255;
                         }
 
@@ -740,7 +738,7 @@ namespace DigitalNegativeCreator
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[RED] = (byte)red;
                             }
                         }
@@ -752,10 +750,10 @@ namespace DigitalNegativeCreator
                 c = 0;
                 for (int columnCount = greenColumn; columnCount > greenColumn - columnOffset; columnCount--)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = 1; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
+                        var iy = startY + rowCount * cellSize;
                         if (rowCount <= centerRow)
                         {
                             if (currentColumn == greenColumn)
@@ -764,12 +762,12 @@ namespace DigitalNegativeCreator
                             }
                             else if (columnCount == greenColumn - 1)
                             {
-                                red = (int)((rowCount * babyStep) + ((c - 1) * babyStep));
+                                red = rowCount * babyStep + (c - 1) * babyStep;
                             }
                             else
                             {
-                                pixel = (byte*)ptr + (iy * stride) + ((startX + ((greenColumn - 1) * cellSize)) * bytesPerPixel);
-                                var tRed = (byte)pixel[RED];
+                                pixel = (byte*)ptr + iy * stride + (startX + (greenColumn - 1) * cellSize) * bytesPerPixel;
+                                var tRed = pixel[RED];
                                 red = tRed * c;
 
                             }
@@ -778,10 +776,10 @@ namespace DigitalNegativeCreator
                         }
                         else
                         {
-                            pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + ((columnCount) * cellSize)) * bytesPerPixel);
-                            var tRed = (byte)pixel[RED];
+                            pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + (startX + columnCount * cellSize) * bytesPerPixel;
+                            var tRed = pixel[RED];
                             var mult = (255 - tRed) / (rows - centerRow - 2);
-                            red = (mult * (rowCount - centerRow)) + tRed;
+                            red = mult * (rowCount - centerRow) + tRed;
                             if (red > 255) red = 255;
                         }
 
@@ -789,9 +787,9 @@ namespace DigitalNegativeCreator
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[RED] = (byte)red;
-                                pixel[ALPHA] = (byte)255;
+                                pixel[ALPHA] = 255;
                             }
                         }
                     }
@@ -801,20 +799,20 @@ namespace DigitalNegativeCreator
                 //  red for first green column + 1 to < blueColumn.
                 for (int columnCount = greenColumn + 1; columnCount < blueColumn; columnCount++)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = centerRow; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
-                        pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + (greenColumn * cellSize)) * bytesPerPixel);
-                        var tempRed = (byte)pixel[RED];
+                        var iy = startY + rowCount * cellSize;
+                        pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + (startX + greenColumn * cellSize) * bytesPerPixel;
+                        var tempRed = pixel[RED];
                         var mult = (255 - tempRed) / (rows - centerRow - 2);
-                        red = (mult * (rowCount - centerRow)) + tempRed;
+                        red = mult * (rowCount - centerRow) + tempRed;
                         if (red > 255) red = 255;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[RED] = (byte)red;
                             }
                         }
@@ -824,26 +822,26 @@ namespace DigitalNegativeCreator
                 //  green for first blue column + 1 to < columns - 1.
                 for (int columnCount = blueColumn + 1; columnCount < columns; columnCount++)
                 {
-                    currentColumn = startX + (columnCount * cellSize);
+                    currentColumn = startX + columnCount * cellSize;
                     for (int rowCount = centerRow; rowCount < rows; rowCount++)
                     {
-                        var iy = startY + (rowCount * cellSize);
-                        pixel = (byte*)ptr + ((startY + (centerRow * cellSize)) * stride) + ((startX + (blueColumn * cellSize)) * bytesPerPixel);
-                        var tGreen = (byte)pixel[GREEN];
+                        var iy = startY + rowCount * cellSize;
+                        pixel = (byte*)ptr + (startY + centerRow * cellSize) * stride + (startX + blueColumn * cellSize) * bytesPerPixel;
+                        var tGreen = pixel[GREEN];
                         var mult = (255 - tGreen) / (rows - centerRow - 2);
-                        green = (mult * (rowCount - centerRow)) + tGreen;
+                        green = mult * (rowCount - centerRow) + tGreen;
                         if (green > 255) green = 255;
                         for (int y2 = 0; y2 < blockSize; y2++)
                         {
                             for (int x2 = 0; x2 < blockSize; x2++)
                             {
-                                pixel = (byte*)ptr + ((y2 + iy) * stride) + ((currentColumn + x2) * bytesPerPixel);
+                                pixel = (byte*)ptr + (y2 + iy) * stride + (currentColumn + x2) * bytesPerPixel;
                                 pixel[GREEN] = (byte)green;
                             }
                         }
                     }
                 }
-                
+
             }
 
             bmp.UnlockBits(bmpData);
@@ -941,8 +939,8 @@ namespace DigitalNegativeCreator
             {
                 for (int y = 0; y < input.Height; y++)
                 {
-                    byte* srcRow = (byte*)srcData.Scan0 + (y * srcData.Stride);
-                    byte* dstRow = (byte*)dstData.Scan0 + (y * dstData.Stride);
+                    byte* srcRow = (byte*)srcData.Scan0 + y * srcData.Stride;
+                    byte* dstRow = (byte*)dstData.Scan0 + y * dstData.Stride;
 
                     for (int x = 0; x < input.Width; x++)
                     {
@@ -1014,7 +1012,7 @@ namespace DigitalNegativeCreator
             */
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
             BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
+            nint ptr = bmpData.Scan0;
             int stride = bmpData.Stride;
             int bytesPerPixel = Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
             Dictionary<Point, Color> mappedColors = new Dictionary<Point, Color>();
@@ -1024,10 +1022,10 @@ namespace DigitalNegativeCreator
             {
                 for (int columnCount = 0; columnCount < COLUMNS; columnCount++)
                 {
-                    var iy = startPoint + (columnCount * offset);
+                    var iy = startPoint + columnCount * offset;
                     for (int rowCount = 0; rowCount < ROWS; rowCount++)
                     {
-                        var ix = startPoint + (rowCount * offset);
+                        var ix = startPoint + rowCount * offset;
                         var color = GetPixelNeighborsAverage(ix, iy, ptr, stride, bytesPerPixel);
                         int gray = (int)(0.299 * color.R + 0.587 * color.G + 0.114 * color.B);
                         var grayColor = Color.FromArgb(255, gray, gray, gray);
@@ -1038,7 +1036,7 @@ namespace DigitalNegativeCreator
             return mappedColors;
         }
 
-        unsafe private static Color GetPixelNeighborsAverage(int x, int y, IntPtr ptr, int stride, int bytesPerPixel)
+        unsafe private static Color GetPixelNeighborsAverage(int x, int y, nint ptr, int stride, int bytesPerPixel)
         {
             //  image format should be 32bppArgb
             int sumR = 0, sumG = 0, sumB = 0, count = 0;
@@ -1046,9 +1044,9 @@ namespace DigitalNegativeCreator
             {
                 for (int dy = -1; dy <= 1; dy++)
                 {
-                    int nx = x + dx;    
+                    int nx = x + dx;
                     int ny = y + dy;
-                    byte* pixel = (byte*)ptr + (ny * stride) + (nx * bytesPerPixel);
+                    byte* pixel = (byte*)ptr + ny * stride + nx * bytesPerPixel;
                     byte blue = pixel[BLUE];
                     byte green = pixel[GREEN];
                     byte red = pixel[RED];
@@ -1126,7 +1124,7 @@ namespace DigitalNegativeCreator
             using (Graphics g = Graphics.FromImage(bmp))
             using (Pen pen = new Pen(color, thickness))
             {
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
 
                 // Calculate endpoints for vertical line
                 Point v1 = new Point(center.X, center.Y - size / 2);

@@ -8,7 +8,7 @@ namespace DigitalNegativeCreator.Entities
         public string? DefaultInputDirectory { get; set; }
         public OutputTypeEnum OutputType { get; set; } = OutputTypeEnum.Tiff;
         public string? ColorMapFileName { get; set; }
-        public SortedDictionary<Color, Point> SortedGrayscaleColorMapping { get; set; } = new SortedDictionary<Color, Point>(new GrayscaleColorComparer());
+        public SortedDictionary<Color, Point> SortedGrayscaleColorMapping { get; set; } = new SortedDictionary<Color, Point>(new HelperClasses.GrayscaleColorComparer());
         public Dictionary<Point, Color> ColorPointMappings { get; set; }
 
         public Image ImageMap { get; set; }

@@ -1,10 +1,14 @@
-﻿namespace DigitalNegativeCreator.Components
+﻿using System.Drawing.Imaging;
+using DigitalNegativeCreator.Utilities;
+
+namespace DigitalNegativeCreator.Components
 {
     public partial class ImageAndNegativeControl : UserControl
     {
         private string Filename { get; set; }
         private Bitmap ImageFile { get; set; }
         private Bitmap NegativeFile { get; set; }
+        private string NegativeFilename { get; set; }
 
         //  possible widthHeight types:
         /*
@@ -47,8 +51,8 @@
             try
             {
                 DateTime now = DateTime.Now;
-                var negativeFileName = $"{Path.GetFileNameWithoutExtension(Filename)}_negative_{now.Year}_{now.Month}_{now.Day}_{now.Hour}_{now.Minute}_{now.Second}.tiff";
-                NegativeFile = ImageUtilities.CreateNegative(ImageFile, MainForm.SettingsEntity, Filename, negativeFileName);
+                NegativeFilename = $"{Path.GetFileNameWithoutExtension(Filename)}_negative_{now.Year}_{now.Month}_{now.Day}_{now.Hour}_{now.Minute}_{now.Second}.tiff";
+                NegativeFile = ImageUtilities.CreateNegative(ImageFile, MainForm.SettingsEntity, Filename, NegativeFilename);
                 if (null != NegativeFile)
                 {
                     _negativePictureBox.Image = NegativeFile;
@@ -66,7 +70,8 @@
 
         private void _saveImageButton_Click(object sender, EventArgs e)
         {
-
+            if (null == ImageFile) return;
+            ImageFile.Save(Filename, GetImageFormatFromFilename(Filename));
         }
 
         private void _scaleButton_Click(object sender, EventArgs e)
@@ -129,7 +134,8 @@
 
         private void _saveNegativeToolstripButton_Click(object sender, EventArgs e)
         {
-
+            if (null == NegativeFile) return;
+            NegativeFile.Save(Filename, GetImageFormatFromFilename(NegativeFilename));
         }
 
         private void _widthHeightTypeComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -181,6 +187,22 @@
         {
             _scaleWidthNumberBox.ValueChanged += _scaleWidthNumberBox_ValueChanged;
             _scaleHeightNumberBox.ValueChanged += _scaleHeightNumberBox_ValueChanged;
+        }
+
+        private ImageFormat GetImageFormatFromFilename(string filename)
+        {
+            var imageFormat = ImageFormat.Jpeg;
+            switch (Path.GetExtension(filename))
+            {
+                case "tiff":
+                    imageFormat = ImageFormat.Tiff;
+                    break;
+                case "png":
+                    imageFormat = ImageFormat.Png;
+                    break;
+            }
+
+            return imageFormat;
         }
     }
 }

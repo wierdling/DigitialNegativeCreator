@@ -1,5 +1,7 @@
 using DigitalNegativeCreator.Components;
 using DigitalNegativeCreator.Entities;
+using DigitalNegativeCreator.HelperClasses;
+using DigitalNegativeCreator.Utilities;
 using System.Text.Json;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
